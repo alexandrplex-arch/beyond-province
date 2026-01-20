@@ -3,1086 +3,2225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beyond Province</title>
+    <title>BeyMarket — Маркетплейс игрового имущества</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg-primary: #0d0d0f;
-            --bg-secondary: #18181c;
-            --bg-card: #212127;
-            --bg-hover: #2a2a30;
-            --border: #333339;
-            --accent: #ff6b82;
-            --accent-hover: #ff7f92;
-            --success: #34c759;
-            --danger: #ff3b30;
-            --warning: #ff9500;
-            --text-primary: #ffffff;
-            --text-secondary: #b0b0b8;
-            --radius: 10px;
-            --radius-sm: 6px;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            --transition: all 0.3s ease;
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f2f2f7;
+            
+            --text-primary: #1d1d1f;
+            --text-secondary: #8e8e93;
+            --text-tertiary: #c7c7cc;
+            
+            --accent-blue: #007aff;
+            --accent-green: #34c759;
+            --accent-red: #ff3b30;
+            --accent-gray: #d1d1d6;
+            
+            --border-light: #e5e5ea;
+            --shadow-light: rgba(0, 0, 0, 0.05);
+            --shadow-medium: rgba(0, 0, 0, 0.08);
+            
+            --radius-medium: 12px;
+            --radius-large: 20px;
+            
+            --space-xs: 8px;
+            --space-sm: 12px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
         }
-
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
-
+        
         body {
             background-color: var(--bg-primary);
             color: var(--text-primary);
-            min-height: 100vh;
-            overflow-x: hidden;
-            font-weight: 400;
             line-height: 1.5;
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-
-        /* Header */
-        .site-header {
-            height: 80px;
-            background-color: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 40px;
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-md);
+        }
+        
+        /* Скрытые секции */
+        .page-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .page-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Навигация */
+        .navbar {
             position: sticky;
             top: 0;
-            z-index: 1000;
+            z-index: 100;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-light);
+            padding: var(--space-sm) 0;
         }
-
+        
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
         .logo {
             display: flex;
             align-items: center;
-            gap: 14px;
-            font-weight: 600;
-            font-size: 24px;
+            gap: var(--space-sm);
+            font-weight: 700;
+            font-size: 22px;
             color: var(--text-primary);
             text-decoration: none;
+            cursor: pointer;
         }
-
+        
         .logo-icon {
-            color: var(--accent);
-            font-size: 28px;
-        }
-
-        .site-nav {
+            width: 32px;
+            height: 32px;
+            background-color: var(--accent-blue);
+            border-radius: 8px;
             display: flex;
-            gap: 30px;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
         }
-
+        
+        .nav-links {
+            display: flex;
+            gap: var(--space-lg);
+        }
+        
         .nav-link {
             color: var(--text-secondary);
             text-decoration: none;
             font-weight: 500;
             font-size: 16px;
-            padding: 10px 0;
+            transition: color 0.2s ease;
             position: relative;
-            transition: var(--transition);
+            cursor: pointer;
+            padding: var(--space-xs) 0;
         }
-
-        .nav-link:hover {
+        
+        .nav-link:hover, .nav-link.active {
             color: var(--text-primary);
         }
-
-        .nav-link.active {
-            color: var(--accent);
-        }
-
+        
         .nav-link.active::after {
             content: '';
             position: absolute;
-            bottom: -2px;
+            bottom: -12px;
             left: 0;
             width: 100%;
-            height: 2px;
-            background-color: var(--accent);
-            border-radius: 1px;
-            animation: slideIn 0.3s ease;
+            height: 3px;
+            background-color: var(--accent-blue);
+            border-radius: 1.5px;
         }
-
-        @keyframes slideIn {
-            from { width: 0; }
-            to { width: 100%; }
-        }
-
-        /* Main Content */
-        .main-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 60px 20px;
-        }
-
-        /* Hero Section */
-        .hero-section {
-            text-align: center;
-            margin-bottom: 80px;
-            padding: 60px 20px;
-            border-radius: var(--radius);
-            background: linear-gradient(135deg, rgba(33, 33, 39, 0.8) 0%, rgba(24, 24, 28, 0.9) 100%);
-            border: 1px solid var(--border);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 30% 30%, rgba(255, 107, 130, 0.1) 0%, transparent 50%);
-            z-index: 0;
-        }
-
-        .hero-title {
-            font-size: 48px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: var(--text-primary);
-            position: relative;
-            z-index: 1;
-        }
-
-        .hero-subtitle {
-            font-size: 20px;
-            color: var(--text-secondary);
-            max-width: 800px;
-            margin: 0 auto 40px;
-            line-height: 1.6;
-            position: relative;
-            z-index: 1;
-        }
-
-        .accent-text {
-            color: var(--accent);
-            font-weight: 600;
-        }
-
-        /* Content Sections */
-        .content-section {
-            margin-bottom: 80px;
-            display: none;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .content-section.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .section-title {
-            font-size: 36px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: var(--text-primary);
+        
+        .user-actions {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: var(--space-md);
         }
-
-        .section-title i {
-            color: var(--accent);
-        }
-
-        .section-subtitle {
-            color: var(--text-secondary);
-            font-size: 18px;
-            margin-bottom: 40px;
-            max-width: 800px;
-        }
-
-        /* Cards */
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
-        }
-
-        .card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 30px;
-            transition: var(--transition);
-            animation: slideUp 0.5s ease;
-            height: 100%;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .card:hover {
-            border-color: var(--accent);
-            transform: translateY(-5px);
-            box-shadow: var(--shadow);
-        }
-
-        .card-header {
+        
+        .user-info {
             display: flex;
             align-items: center;
-            gap: 20px;
-            margin-bottom: 24px;
+            gap: var(--space-sm);
+            cursor: pointer;
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: var(--radius-medium);
+            transition: background-color 0.2s ease;
         }
-
-        .card-icon {
-            width: 60px;
-            height: 60px;
-            background-color: rgba(255, 107, 130, 0.1);
-            border-radius: 12px;
+        
+        .user-info:hover {
+            background-color: var(--bg-tertiary);
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--accent-blue);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--accent);
-            font-size: 24px;
-            transition: var(--transition);
-        }
-
-        .card:hover .card-icon {
-            animation: iconWobble 0.5s ease;
-        }
-
-        @keyframes iconWobble {
-            0%, 100% { transform: rotate(0deg); }
-            25% { transform: rotate(-5deg); }
-            75% { transform: rotate(5deg); }
-        }
-
-        .card-title {
-            font-size: 22px;
             font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text-primary);
-        }
-
-        .card-description {
-            color: var(--text-secondary);
             font-size: 16px;
-            font-weight: 400;
-            line-height: 1.6;
-            margin-bottom: 20px;
         }
-
-        /* Features List */
-        .features-list {
-            margin-top: 30px;
-        }
-
-        .feature-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
-            margin-bottom: 20px;
-            padding: 15px;
-            border-radius: var(--radius-sm);
-            transition: var(--transition);
-        }
-
-        .feature-item:hover {
-            background-color: rgba(255, 107, 130, 0.05);
-        }
-
-        .feature-icon {
-            color: var(--accent);
-            font-size: 18px;
-            margin-top: 3px;
-            flex-shrink: 0;
-        }
-
-        .feature-content h4 {
-            font-size: 17px;
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: var(--text-primary);
-        }
-
-        .feature-content p {
-            color: var(--text-secondary);
-            font-size: 15px;
-            line-height: 1.5;
-        }
-
-        /* Buttons */
+        
         .btn {
-            padding: 16px 32px;
-            border: none;
-            border-radius: var(--radius-sm);
+            padding: var(--space-sm) var(--space-lg);
+            border-radius: var(--radius-medium);
+            font-weight: 600;
             font-size: 16px;
-            font-weight: 500;
             cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
             display: inline-flex;
             align-items: center;
-            gap: 12px;
-            transition: var(--transition);
-            outline: none;
-            position: relative;
-            overflow: hidden;
-            text-decoration: none;
+            justify-content: center;
+            gap: var(--space-xs);
         }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: white;
         }
-
-        .btn:not(:disabled):hover {
-            transform: translateY(-2px);
+        
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
         }
-
-        .btn:not(:disabled):active {
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px var(--shadow-medium);
+        }
+        
+        .btn:active {
             transform: translateY(0);
         }
-
-        .btn-primary {
-            background-color: var(--accent);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background-color: var(--accent-hover);
-        }
-
-        .btn-secondary {
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-            background-color: var(--bg-hover);
-            border-color: var(--accent);
-        }
-
-        .btn-large {
-            padding: 18px 40px;
-            font-size: 18px;
-        }
-
-        .btn::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 5px;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.5);
-            opacity: 0;
-            border-radius: 100%;
-            transform: scale(1, 1) translate(-50%);
-            transform-origin: 50% 50%;
-        }
-
-        .btn:focus:not(:active)::after {
-            animation: ripple 1s ease-out;
-        }
-
-        @keyframes ripple {
-            0% {
-                transform: scale(0, 0);
-                opacity: 0.5;
-            }
-            100% {
-                transform: scale(20, 20);
-                opacity: 0;
-            }
-        }
-
-        /* Coming Soon Section */
-        .coming-soon {
-            display: flex;
-            flex-direction: column;
+        
+        /* Формы */
+        .auth-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
             align-items: center;
             justify-content: center;
-            min-height: 400px;
+            padding: var(--space-md);
+        }
+        
+        .auth-modal.active {
+            display: flex;
+        }
+        
+        .auth-container {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-large);
+            width: 100%;
+            max-width: 480px;
+            padding: var(--space-xl);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: var(--space-xl);
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .auth-tab {
+            flex: 1;
             text-align: center;
-            padding: 60px 20px;
-            background-color: var(--bg-card);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-        }
-
-        .coming-soon-icon {
-            font-size: 80px;
-            color: var(--accent);
-            margin-bottom: 30px;
-            opacity: 0.7;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .coming-soon h2 {
-            font-size: 36px;
+            padding: var(--space-md);
             font-weight: 600;
-            margin-bottom: 15px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color 0.2s ease;
+            position: relative;
+        }
+        
+        .auth-tab.active {
+            color: var(--accent-blue);
+        }
+        
+        .auth-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--accent-blue);
+            border-radius: 1.5px;
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: var(--space-lg);
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: var(--space-xs);
+            font-weight: 500;
             color: var(--text-primary);
         }
-
-        .coming-soon p {
-            font-size: 18px;
-            color: var(--text-secondary);
-            max-width: 600px;
-            margin-bottom: 40px;
-        }
-
-        /* Footer */
-        .site-footer {
+        
+        .form-input {
+            width: 100%;
+            padding: var(--space-md);
+            border-radius: var(--radius-medium);
+            border: 1px solid var(--border-light);
+            font-size: 16px;
             background-color: var(--bg-secondary);
-            border-top: 1px solid var(--border);
-            padding: 40px 20px;
-            margin-top: 80px;
+            color: var(--text-primary);
+            transition: border-color 0.2s ease;
         }
-
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+        
+        /* Категории */
+        .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 30px;
+            margin: var(--space-xl) 0 var(--space-lg);
         }
-
-        .footer-logo {
+        
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .section-subtitle {
+            font-size: 17px;
+            color: var(--text-secondary);
+            margin-top: var(--space-xs);
+        }
+        
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .category-card {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-large);
+            padding: var(--space-lg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: all 0.25s ease;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 2px 8px var(--shadow-light);
+        }
+        
+        .category-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px var(--shadow-medium);
+        }
+        
+        .category-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
+            margin-bottom: var(--space-md);
+            font-size: 28px;
+            color: white;
+        }
+        
+        .category-icon.plate {
+            background-color: #5856d6;
+        }
+        
+        .category-icon.clothing {
+            background-color: #ff9500;
+        }
+        
+        .category-icon.car {
+            background-color: #ff3b30;
+        }
+        
+        .category-icon.business {
+            background-color: #34c759;
+        }
+        
+        .category-icon.property {
+            background-color: #5ac8fa;
+        }
+        
+        .category-icon.accessory {
+            background-color: #af52de;
+        }
+        
+        .category-title {
             font-weight: 600;
-            font-size: 20px;
-            color: var(--text-primary);
-            text-decoration: none;
+            font-size: 18px;
+            margin-bottom: var(--space-xs);
         }
-
-        .footer-links {
-            display: flex;
-            gap: 30px;
+        
+        /* Создание объявления */
+        .create-listing-form {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-large);
+            padding: var(--space-xl);
+            margin: var(--space-xl) 0;
+            box-shadow: 0 2px 8px var(--shadow-light);
         }
-
-        .footer-link {
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: var(--transition);
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-lg);
         }
-
-        .footer-link:hover {
-            color: var(--accent);
-        }
-
-        /* Download Section */
-        .download-section {
-            background-color: rgba(255, 107, 130, 0.05);
-            border: 1px solid rgba(255, 107, 130, 0.2);
-            border-radius: var(--radius);
-            padding: 40px;
-            margin-top: 40px;
-        }
-
-        .download-info {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-
-        .download-icon {
-            font-size: 48px;
-            color: var(--accent);
-        }
-
-        .download-details h3 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--text-primary);
-        }
-
-        .download-details p {
-            color: var(--text-secondary);
+        
+        .form-textarea {
+            width: 100%;
+            padding: var(--space-md);
+            border-radius: var(--radius-medium);
+            border: 1px solid var(--border-light);
             font-size: 16px;
-            margin-bottom: 15px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: border-color 0.2s ease;
+            min-height: 120px;
+            resize: vertical;
+            font-family: 'Inter', sans-serif;
         }
-
-        .download-actions {
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+        
+        /* Список объявлений */
+        .listings-header {
             display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-lg);
         }
-
-        /* Status Badges */
-        .status-badge {
-            display: inline-block;
-            padding: 6px 15px;
+        
+        .filter-tabs {
+            display: flex;
+            background-color: var(--bg-tertiary);
+            border-radius: var(--radius-medium);
+            padding: 4px;
+        }
+        
+        .filter-tab {
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+        }
+        
+        .filter-tab.active {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            box-shadow: 0 1px 4px var(--shadow-light);
+        }
+        
+        .listings-container {
+            min-height: 400px;
+        }
+        
+        .listings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .listing-card {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-large);
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 2px 8px var(--shadow-light);
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+        
+        .listing-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px var(--shadow-medium);
+        }
+        
+        .listing-image {
+            height: 180px;
+            background-color: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-tertiary);
+            font-size: 48px;
+            position: relative;
+        }
+        
+        .listing-badge {
+            position: absolute;
+            top: var(--space-sm);
+            right: var(--space-sm);
+            padding: 4px 10px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
-            margin-bottom: 15px;
+            color: white;
         }
-
-        .status-available {
-            background-color: rgba(52, 199, 89, 0.1);
-            color: var(--success);
-            border: 1px solid rgba(52, 199, 89, 0.2);
+        
+        .listing-badge.sale {
+            background-color: var(--accent-red);
         }
-
-        .status-dev {
-            background-color: rgba(255, 149, 0, 0.1);
-            color: var(--warning);
-            border: 1px solid rgba(255, 149, 0, 0.2);
+        
+        .listing-badge.purchase {
+            background-color: var(--accent-green);
         }
-
-        /* Responsive */
+        
+        .listing-content {
+            padding: var(--space-lg);
+        }
+        
+        .listing-title {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: var(--space-xs);
+            line-height: 1.3;
+        }
+        
+        .listing-description {
+            color: var(--text-secondary);
+            font-size: 15px;
+            margin-bottom: var(--space-md);
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .listing-price {
+            font-weight: 700;
+            font-size: 22px;
+            color: var(--text-primary);
+            margin-bottom: var(--space-sm);
+        }
+        
+        .listing-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: var(--text-secondary);
+            padding-top: var(--space-md);
+            border-top: 1px solid var(--border-light);
+        }
+        
+        /* Сообщения */
+        .messages-container {
+            display: flex;
+            height: calc(100vh - 150px);
+            margin-top: var(--space-lg);
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-large);
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 2px 8px var(--shadow-light);
+        }
+        
+        .conversations-sidebar {
+            width: 320px;
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .conversations-header {
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .conversations-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .conversation-item {
+            padding: var(--space-md);
+            border-bottom: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .conversation-item:hover, .conversation-item.active {
+            background-color: var(--bg-tertiary);
+        }
+        
+        .conversation-user {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .conversation-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .conversation-name {
+            font-weight: 600;
+        }
+        
+        .conversation-preview {
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header {
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: var(--space-lg);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+        
+        .message {
+            max-width: 70%;
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-medium);
+            line-height: 1.4;
+        }
+        
+        .message.sent {
+            align-self: flex-end;
+            background-color: var(--accent-blue);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message.received {
+            align-self: flex-start;
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+        }
+        
+        .chat-input-container {
+            padding: var(--space-md);
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            gap: var(--space-sm);
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: var(--space-md);
+            border-radius: var(--radius-medium);
+            border: 1px solid var(--border-light);
+            font-size: 16px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: border-color 0.2s ease;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+        
+        /* Футер */
+        .footer {
+            background-color: var(--bg-secondary);
+            border-top: 1px solid var(--border-light);
+            padding: var(--space-xl) 0;
+            margin-top: var(--space-xl);
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--space-xl);
+        }
+        
+        .footer-section {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .footer-title {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: var(--space-md);
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: var(--space-sm);
+        }
+        
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        
+        .footer-links a:hover {
+            color: var(--accent-blue);
+        }
+        
+        .copyright {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: var(--space-xl);
+            padding-top: var(--space-lg);
+            border-top: 1px solid var(--border-light);
+        }
+        
+        /* Состояния */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-xl);
+            color: var(--text-secondary);
+        }
+        
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: var(--space-md);
+            color: var(--text-tertiary);
+        }
+        
+        /* Адаптивность */
         @media (max-width: 768px) {
-            .site-header {
-                padding: 0 20px;
+            .navbar-content {
+                flex-direction: column;
+                gap: var(--space-md);
+            }
+            
+            .nav-links {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+                gap: var(--space-md);
+                flex-wrap: wrap;
+            }
+            
+            .nav-link.active::after {
+                bottom: -8px;
+            }
+            
+            .categories {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .messages-container {
                 flex-direction: column;
                 height: auto;
-                padding: 15px 20px;
             }
             
-            .site-nav {
-                margin-top: 15px;
-                gap: 20px;
-                flex-wrap: wrap;
-                justify-content: center;
+            .conversations-sidebar {
+                width: 100%;
+                height: 300px;
             }
-            
-            .hero-title {
-                font-size: 36px;
-            }
-            
-            .hero-subtitle {
-                font-size: 18px;
-            }
-            
-            .section-title {
-                font-size: 28px;
-            }
-            
-            .card-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .download-info {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .footer-content {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .footer-links {
-                justify-content: center;
-            }
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-secondary);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent);
-        }
-
-        /* Selection */
-        ::selection {
-            background-color: rgba(255, 107, 130, 0.4);
-            color: white;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="site-header">
-        <a href="#" class="logo" onclick="switchSection('home')">
-            <i class="fas fa-tools logo-icon"></i>
-            <span>Beyond Province</span>
-        </a>
+    <!-- Модалка аутентификации -->
+    <div class="auth-modal" id="authModal">
+        <div class="auth-container">
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login">Вход</div>
+                <div class="auth-tab" data-tab="register">Регистрация</div>
+            </div>
+            
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Пароль</label>
+                    <input type="password" class="form-input" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Войти</button>
+            </form>
+            
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label class="form-label">Имя пользователя</label>
+                    <input type="text" class="form-input" id="registerUsername" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Пароль</label>
+                    <input type="password" class="form-input" id="registerPassword" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Зарегистрироваться</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <div class="logo" id="goToHome">
+                <div class="logo-icon">B</div>
+                BeyMarket
+            </div>
+            
+            <div class="nav-links">
+                <div class="nav-link active" data-page="home">Главная</div>
+                <div class="nav-link" data-page="listings">Объявления</div>
+                <div class="nav-link" data-page="create">Разместить</div>
+                <div class="nav-link" data-page="messages">Сообщения</div>
+                <div class="nav-link" data-page="favorites">Избранное</div>
+            </div>
+            
+            <div class="user-actions">
+                <button class="btn btn-secondary" id="searchBtn">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button class="btn btn-primary" id="createListingBtn">
+                    <i class="fas fa-plus"></i> Разместить
+                </button>
+                <div class="user-info" id="userInfo">
+                    <div class="user-avatar" id="userAvatar">?</div>
+                    <span id="userName">Войти</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <main class="container">
+        <!-- Главная страница -->
+        <section id="homeSection" class="page-section active">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Категории</h1>
+                    <p class="section-subtitle">Игровое имущество для продажи и покупки</p>
+                </div>
+            </div>
+            
+            <div class="categories">
+                <div class="category-card" data-category="plate">
+                    <div class="category-icon plate">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <h3 class="category-title">Номерные знаки</h3>
+                    <p class="category-count" id="plateCount">Загрузка...</p>
+                </div>
+                
+                <div class="category-card" data-category="clothing">
+                    <div class="category-icon clothing">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <h3 class="category-title">Одежда</h3>
+                    <p class="category-count" id="clothingCount">Загрузка...</p>
+                </div>
+                
+                <div class="category-card" data-category="car">
+                    <div class="category-icon car">
+                        <i class="fas fa-car-side"></i>
+                    </div>
+                    <h3 class="category-title">Автомобили</h3>
+                    <p class="category-count" id="carCount">Загрузка...</p>
+                </div>
+                
+                <div class="category-card" data-category="business">
+                    <div class="category-icon business">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h3 class="category-title">Бизнес</h3>
+                    <p class="category-count" id="businessCount">Загрузка...</p>
+                </div>
+                
+                <div class="category-card" data-category="property">
+                    <div class="category-icon property">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <h3 class="category-title">Недвижимость</h3>
+                    <p class="category-count" id="propertyCount">Загрузка...</p>
+                </div>
+                
+                <div class="category-card" data-category="accessory">
+                    <div class="category-icon accessory">
+                        <i class="fas fa-gem"></i>
+                    </div>
+                    <h3 class="category-title">Аксессуары</h3>
+                    <p class="category-count" id="accessoryCount">Загрузка...</p>
+                </div>
+            </div>
+            
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Популярные объявления</h2>
+                    <p class="section-subtitle">Самые обсуждаемые предложения</p>
+                </div>
+                <div class="filter-tabs" id="homeFilterTabs">
+                    <div class="filter-tab active" data-filter="all">Все</div>
+                    <div class="filter-tab" data-filter="sale">Продажа</div>
+                    <div class="filter-tab" data-filter="purchase">Покупка</div>
+                </div>
+            </div>
+            
+            <div class="listings-container">
+                <div class="listings-grid" id="featuredListings">
+                    <!-- Динамически загружаемые объявления -->
+                </div>
+            </div>
+        </section>
         
-        <nav class="site-nav">
-            <a href="#" class="nav-link active" onclick="switchSection('home')">Главная</a>
-            <a href="#" class="nav-link" onclick="switchSection('assistant')">Beyond Assistant</a>
-            <a href="#" class="nav-link" onclick="switchSection('blur')">Beyond Blur</a>
-        </nav>
-    </header>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Home Section -->
-        <section id="home-section" class="content-section active">
-            <div class="hero-section">
-                <h1 class="hero-title">Beyond Province</h1>
-                <p class="hero-subtitle">
-                    Экосистема инструментов для модификации игры <span class="accent-text">MTA Province</span>. 
-                    От замены сирен до пост-обработки графики — все в одном месте.
-                </p>
-                <a href="#" class="btn btn-primary btn-large" onclick="switchSection('assistant')">
-                    <i class="fas fa-rocket"></i> Исследовать инструменты
-                </a>
-            </div>
-
-            <div class="card-grid">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">
-                            <i class="fas fa-tools"></i>
-                        </div>
-                        <div>
-                            <h3 class="card-title">Beyond Assistant</h3>
-                            <p class="card-description">Основной инструмент для модификации игры. Замена сирен, управление звуками, создание модов.</p>
-                        </div>
-                    </div>
-                    <div class="features-list">
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="fas fa-exchange-alt"></i>
-                            </div>
-                            <div class="feature-content">
-                                <h4>Замена сирен и звуков</h4>
-                                <p>Простая замена звуков сигналов полиции, скорой помощи и других служб</p>
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="fas fa-folder-plus"></i>
-                            </div>
-                            <div class="feature-content">
-                                <h4>Создание собственных модов</h4>
-                                <p>Интуитивный интерфейс для создания и упаковки модификаций</p>
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="fas fa-save"></i>
-                            </div>
-                            <div class="feature-content">
-                                <h4>Резервное копирование</h4>
-                                <p>Автоматическое создание резервных копий файлов</p>
-                            </div>
-                        </div>
-                    </div>
-                    <a href="#" class="btn btn-primary w-full mt-4" onclick="switchSection('assistant')">
-                        <i class="fas fa-info-circle"></i> Подробнее
-                    </a>
+        <!-- Страница объявлений -->
+        <section id="listingsSection" class="page-section">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Все объявления</h1>
+                    <p class="section-subtitle">Найдите то, что ищете</p>
                 </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">
-                            <i class="fas fa-magic"></i>
-                        </div>
-                        <div>
-                            <h3 class="card-title">Beyond Blur</h3>
-                            <p class="card-description">Мощный инструмент для пост-обработки графики игры. Добавление эффектов размытия и улучшение визуала.</p>
-                        </div>
-                    </div>
-                    <div class="features-list">
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="fas fa-eye-dropper"></i>
-                            </div>
-                            <div class="feature-content">
-                                <h4>Настраиваемые эффекты</h4>
-                                <p>Полный контроль над параметрами размытия и других эффектов</p>
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="fas fa-sliders-h"></i>
-                            </div>
-                            <div class="feature-content">
-                                <h4>Режимы размытия</h4>
-                                <p>Различные алгоритмы размытия для разных ситуаций</p>
-                            </div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">
-                                <i class="fas fa-bolt"></i>
-                            </div>
-                            <div class="feature-content">
-                                <h4>Оптимизация производительности</h4>
-                                <p>Минимальное влияние на FPS при максимальном качестве</p>
-                            </div>
-                        </div>
-                    </div>
-                    <a href="#" class="btn btn-primary w-full mt-4" onclick="switchSection('blur')">
-                        <i class="fas fa-info-circle"></i> Подробнее
-                    </a>
+                
+                <div class="filter-tabs" id="listingsFilterTabs">
+                    <div class="filter-tab active" data-filter="all">Все</div>
+                    <div class="filter-tab" data-filter="sale">Продажа</div>
+                    <div class="filter-tab" data-filter="purchase">Покупка</div>
+                    <div class="filter-tab" data-filter="my">Мои</div>
+                </div>
+            </div>
+            
+            <div class="listings-container">
+                <div class="listings-grid" id="allListings">
+                    <!-- Динамически загружаемые объявления -->
                 </div>
             </div>
         </section>
-
-        <!-- Beyond Assistant Section -->
-        <section id="assistant-section" class="content-section">
-            <h1 class="section-title">
-                <i class="fas fa-tools"></i> Beyond Assistant
-            </h1>
-            <p class="section-subtitle">
-                Основной инструмент экосистемы Beyond Province. Все, что нужно для модификации игры, в одном приложении.
-            </p>
-
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <i class="fas fa-desktop"></i>
+        
+        <!-- Создание объявления -->
+        <section id="createSection" class="page-section">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Разместить объявление</h1>
+                    <p class="section-subtitle">Продайте или найдите игровое имущество</p>
+                </div>
+            </div>
+            
+            <form class="create-listing-form" id="createListingForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Тип объявления</label>
+                        <select class="form-input" id="listingType" required>
+                            <option value="">Выберите тип</option>
+                            <option value="sale">Продажа</option>
+                            <option value="purchase">Покупка</option>
+                        </select>
                     </div>
-                    <div>
-                        <h3 class="card-title">Beyond Assistant для Windows</h3>
-                        <p class="card-description">
-                            Полнофункциональное десктопное приложение для модификации MTA Province. 
-                            Современный интерфейс, высокая производительность и все необходимые инструменты.
-                        </p>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Категория</label>
+                        <select class="form-input" id="listingCategory" required>
+                            <option value="">Выберите категорию</option>
+                            <option value="plate">Номерные знаки</option>
+                            <option value="clothing">Одежда</option>
+                            <option value="car">Автомобили</option>
+                            <option value="business">Бизнес</option>
+                            <option value="property">Недвижимость</option>
+                            <option value="accessory">Аксессуары</option>
+                        </select>
                     </div>
                 </div>
-
-                <div class="features-list">
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <i class="fas fa-siren"></i>
-                        </div>
-                        <div class="feature-content">
-                            <h4>Замена сирен и звуков</h4>
-                            <p>Простая замена звуков сигналов полиции, скорой помощи и других служб</p>
-                        </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Заголовок</label>
+                    <input type="text" class="form-input" id="listingTitle" placeholder="Например: Продаю номерной знак 'VIP 001'" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Описание</label>
+                    <textarea class="form-textarea" id="listingDescription" placeholder="Опишите подробно ваше предложение..." required></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Цена ($)</label>
+                        <input type="number" class="form-input" id="listingPrice" placeholder="0" min="0" required>
                     </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <i class="fas fa-folder-plus"></i>
-                        </div>
-                        <div class="feature-content">
-                            <h4>Создание собственных модов</h4>
-                            <p>Интуитивный интерфейс для создания и упаковки пользовательских модификаций</p>
-                        </div>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <i class="fas fa-save"></i>
-                        </div>
-                        <div class="feature-content">
-                            <h4>Резервное копирование</h4>
-                            <p>Автоматическое создание резервных копий перед внесением изменений</p>
-                        </div>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <i class="fas fa-music"></i>
-                        </div>
-                        <div class="feature-content">
-                            <h4>Библиотека звуков</h4>
-                            <p>Управление всеми пользовательскими звуковыми файлами в одном месте</p>
-                        </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Контакт для связи</label>
+                        <input type="text" class="form-input" id="listingContact" placeholder="Имя пользователя или другие контакты" required>
                     </div>
                 </div>
-
-                <div class="download-section">
-                    <div class="download-info">
-                        <div class="download-icon">
-                            <i class="fas fa-download"></i>
-                        </div>
-                        <div class="download-details">
-                            <div class="status-badge status-available">ДОСТУПНО</div>
-                            <h3>Скачать Beyond Assistant</h3>
-                            <p>
-                                Версия 3.0 | Windows 10/11 | Бесплатно
-                            </p>
-                            <div class="download-actions">
-                                <a href="https://wdfiles.ru/2Qwem" class="btn btn-primary btn-large" target="_blank" id="downloadBtn">
-                                    <i class="fas fa-download"></i> Скачать
-                                </a>
+                
+                <div class="form-group">
+                    <label class="form-label">Изображение (URL)</label>
+                    <input type="url" class="form-input" id="listingImage" placeholder="https://example.com/image.jpg">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: var(--space-md) var(--space-xl); font-size: 18px;">
+                    <i class="fas fa-paper-plane"></i> Опубликовать объявление
+                </button>
+            </form>
+        </section>
+        
+        <!-- Сообщения -->
+        <section id="messagesSection" class="page-section">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Сообщения</h1>
+                    <p class="section-subtitle">Общайтесь с покупателями и продавцами</p>
+                </div>
+            </div>
+            
+            <div class="messages-container">
+                <div class="conversations-sidebar">
+                    <div class="conversations-header">
+                        <h3 style="margin-bottom: var(--space-sm);">Диалоги</h3>
+                        <input type="text" class="form-input" placeholder="Поиск диалогов" id="conversationSearch">
+                    </div>
+                    
+                    <div class="conversations-list" id="conversationsList">
+                        <!-- Динамически загружаемые диалоги -->
+                    </div>
+                </div>
+                
+                <div class="chat-container">
+                    <div class="chat-header" id="chatHeader">
+                        <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                            <div class="conversation-avatar" id="chatAvatar">?</div>
+                            <div>
+                                <div style="font-weight: 600;" id="chatUserName">Выберите диалог</div>
+                                <div style="font-size: 14px; color: var(--text-secondary);" id="chatUserStatus">Нет активного диалога</div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="mt-8">
-                    <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 15px; color: var(--text-primary);">
-                        Системные требования:
-                    </h4>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                        <div>
-                            <h5 style="font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--accent);">Минимальные:</h5>
-                            <ul style="color: var(--text-secondary); font-size: 14px; list-style: none; padding: 0;">
-                                <li style="margin-bottom: 5px;">• Windows 10 64-bit</li>
-                                <li style="margin-bottom: 5px;">• 2 ГБ оперативной памяти</li>
-                                <li style="margin-bottom: 5px;">• 500 МБ свободного места</li>
-                                <li>• .NET Framework 4.8</li>
-                            </ul>
+                    
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="empty-state" style="margin: auto;">
+                            <div class="empty-state-icon"><i class="far fa-comments"></i></div>
+                            <div style="font-size: 18px; margin-bottom: var(--space-sm);">Нет активного диалога</div>
+                            <div style="color: var(--text-secondary);">Выберите диалог из списка слева, чтобы начать общение</div>
                         </div>
-                        <div>
-                            <h5 style="font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--accent);">Рекомендуемые:</h5>
-                            <ul style="color: var(--text-secondary); font-size: 14px; list-style: none; padding: 0;">
-                                <li style="margin-bottom: 5px;">• Windows 11 64-bit</li>
-                                <li style="margin-bottom: 5px;">• 4 ГБ оперативной памяти</li>
-                                <li style="margin-bottom: 5px;">• 1 ГБ свободного места</li>
-                                <li>• SSD для лучшей производительности</li>
-                            </ul>
-                        </div>
+                    </div>
+                    
+                    <div class="chat-input-container" id="chatInputContainer" style="display: none;">
+                        <input type="text" class="chat-input" id="chatInput" placeholder="Введите сообщение..." disabled>
+                        <button class="btn btn-primary" id="sendMessageBtn" disabled><i class="fas fa-paper-plane"></i></button>
                     </div>
                 </div>
             </div>
         </section>
-
-        <!-- Beyond Blur Section -->
-        <section id="blur-section" class="content-section">
-            <h1 class="section-title">
-                <i class="fas fa-magic"></i> Beyond Blur
-            </h1>
-            <p class="section-subtitle">
-                Инструмент для пост-обработки графики MTA Province. Добавление эффектов размытия, улучшение визуального качества и создание атмосферы.
-            </p>
-
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <i class="fas fa-eye"></i>
-                    </div>
-                    <div>
-                        <h3 class="card-title">Beyond Blur - Постобработка графики</h3>
-                        <p class="card-description">
-                            Мощный инструмент для добавления эффектов размытия и улучшения визуального качества игры. 
-                            Создайте уникальную атмосферу с помощью настроек пост-обработки.
-                        </p>
-                    </div>
+        
+        <!-- Избранное -->
+        <section id="favoritesSection" class="page-section">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Избранное</h1>
+                    <p class="section-subtitle">Сохраните интересные предложения</p>
                 </div>
-
-                <div class="features-list">
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <i class="fas fa-sliders-h"></i>
-                        </div>
-                        <div class="feature-content">
-                            <h4>Настраиваемые эффекты размытия</h4>
-                            <p>Полный контроль над интенсивностью, радиусом и типом размытия</p>
-                        </div>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <i class="fas fa-layer-group"></i>
-                        </div>
-                        <div class="feature-content">
-                            <h4>Многослойные эффекты</h4>
-                            <p>Комбинируйте различные типы размытия для создания уникальных эффектов</p>
-                        </div>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <div class="feature-content">
-                            <h4>Оптимизация производительности</h4>
-                            <p>Минимальное влияние на FPS даже при сложных эффектах</p>
-                        </div>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <i class="fas fa-gamepad"></i>
-                        </div>
-                        <div class="feature-content">
-                            <h4>Режимы для разных ситуаций</h4>
-                            <p>Оптимальные настройки для гонок, перестрелок, прогулок и т.д.</p>
-                        </div>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <i class="fas fa-palette"></i>
-                        </div>
-                        <div class="feature-content">
-                            <h4>Цветовая коррекция</h4>
-                            <p>Дополнительные настройки цвета и контраста</p>
-                        </div>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <i class="fas fa-save"></i>
-                        </div>
-                        <div class="feature-content">
-                            <h4>Сохранение пресетов</h4>
-                            <p>Создавайте и сохраняйте свои наборы настроек</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="download-section">
-                    <div class="download-info">
-                        <div class="download-icon">
-                            <i class="fas fa-download"></i>
-                        </div>
-                        <div class="download-details">
-                            <div class="status-badge status-dev">В РАЗРАБОТКЕ</div>
-                            <h3>Beyond Blur скоро будет доступен</h3>
-                            <p>
-                                Инструмент находится в активной разработке. Следите за обновлениями!
-                            </p>
-                            <div class="download-actions">
-                                <button class="btn btn-secondary btn-large" onclick="showComingSoon('Beyond Blur')">
-                                    <i class="fas fa-clock"></i> Уведомить о выходе
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-8">
-                    <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 15px; color: var(--text-primary);">
-                        Планируемые возможности:
-                    </h4>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                        <div>
-                            <h5 style="font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--accent);">Эффекты размытия:</h5>
-                            <ul style="color: var(--text-secondary); font-size: 14px; list-style: none; padding: 0;">
-                                <li style="margin-bottom: 5px;">• Гауссово размытие</li>
-                                <li style="margin-bottom: 5px;">• Движущееся размытие</li>
-                                <li style="margin-bottom: 5px;">• Глубина резкости</li>
-                                <li>• Атмосферная дымка</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h5 style="font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--accent);">Дополнительные эффекты:</h5>
-                            <ul style="color: var(--text-secondary); font-size: 14px; list-style: none; padding: 0;">
-                                <li style="margin-bottom: 5px;">• Цветокоррекция</li>
-                                <li style="margin-bottom: 5px;">• Виньетирование</li>
-                                <li style="margin-bottom: 5px;">• Эффект линзы</li>
-                                <li>• Настройка резкости</li>
-                            </ul>
-                        </div>
-                    </div>
+            </div>
+            
+            <div class="listings-container">
+                <div class="listings-grid" id="favoritesListings">
+                    <!-- Динамически загружаемые избранные объявления -->
                 </div>
             </div>
         </section>
     </main>
-
-    <!-- Footer -->
-    <footer class="site-footer">
-        <div class="footer-content">
-            <a href="#" class="footer-logo" onclick="switchSection('home')">
-                <i class="fas fa-tools"></i>
-                <span>Beyond Province</span>
-            </a>
+    
+    <!-- Футер -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 class="footer-title">BeyMarket</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">Премиальный маркетплейс игрового имущества. Продавайте и покупайте безопасно.</p>
+                    <div style="display: flex; gap: var(--space-sm);">
+                        <a href="https://vk.com/beyondprovince?from=groups" target="_blank" style="text-decoration: none;">
+                            <button class="btn btn-secondary" style="padding: 8px 12px;">
+                                <i class="fab fa-vk"></i> VK
+                            </button>
+                        </a>
+                        <button class="btn btn-secondary" style="padding: 8px 12px;">
+                            <i class="fab fa-twitter"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3 class="footer-title">Категории</h3>
+                    <ul class="footer-links">
+                        <li><a href="#" data-category="plate">Номерные знаки</a></li>
+                        <li><a href="#" data-category="clothing">Одежда</a></li>
+                        <li><a href="#" data-category="car">Автомобили</a></li>
+                        <li><a href="#" data-category="business">Бизнес</a></li>
+                        <li><a href="#" data-category="property">Недвижимость</a></li>
+                        <li><a href="#" data-category="accessory">Аксессуары</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3 class="footer-title">Помощь</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Центр поддержки</a></li>
+                        <li><a href="#">Правила безопасности</a></li>
+                        <li><a href="#">Как продавать</a></li>
+                        <li><a href="#">Как покупать</a></li>
+                        <li><a href="#">Частые вопросы</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3 class="footer-title">О компании</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">О нас</a></li>
+                        <li><a href="#">Блог</a></li>
+                        <li><a href="#">Партнёрство</a></li>
+                        <li><a href="#">Условия использования</a></li>
+                        <li><a href="#">Политика конфиденциальности</a></li>
+                    </ul>
+                </div>
+            </div>
             
-            <div class="footer-links">
-                <a href="#" class="footer-link" onclick="switchSection('home')">Главная</a>
-                <a href="#" class="footer-link" onclick="switchSection('assistant')">Beyond Assistant</a>
-                <a href="#" class="footer-link" onclick="switchSection('blur')">Beyond Blur</a>
+            <div class="copyright">
+                <p>BeyMarket — маркетплейс игрового имущества</p>
             </div>
         </div>
     </footer>
-
+    
     <script>
-        // Переключение между разделами
-        function switchSection(sectionId) {
-            // Обновляем навигацию
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
+        // Настройки Supabase
+        const SUPABASE_URL = 'https://wxnidsrdnfndvztdfbxx.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_RCm2OA76-0J3VhoeBoPlLg_A5_QRLEQ';
+        
+        // Инициализация Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Состояние приложения
+        let currentUser = null;
+        let currentPage = 'home';
+        let currentCategoryFilter = 'all';
+        let currentChat = null;
+        let listings = [];
+        let conversations = [];
+        
+        // DOM элементы
+        const authModal = document.getElementById('authModal');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const authTabs = document.querySelectorAll('.auth-tab');
+        const userInfo = document.getElementById('userInfo');
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pageSections = document.querySelectorAll('.page-section');
+        const createListingBtn = document.getElementById('createListingBtn');
+        const createListingForm = document.getElementById('createListingForm');
+        const goToHome = document.getElementById('goToHome');
+        
+        // Инициализация приложения
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Проверка авторизации
+            await checkAuth();
             
-            // Активируем соответствующую ссылку
-            if (sectionId === 'home') {
-                document.querySelector('.nav-link[onclick*="home"]').classList.add('active');
-            } else if (sectionId === 'assistant') {
-                document.querySelector('.nav-link[onclick*="assistant"]').classList.add('active');
-            } else if (sectionId === 'blur') {
-                document.querySelector('.nav-link[onclick*="blur"]').classList.add('active');
-            }
+            // Загрузка данных
+            await loadListings();
+            await loadCategoriesCount();
             
-            // Показываем соответствующий раздел
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.classList.remove('active');
-            });
+            // Инициализация навигации
+            initNavigation();
             
-            document.getElementById(sectionId + '-section').classList.add('active');
+            // Инициализация форм
+            initForms();
             
-            // Прокрутка к верху страницы
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Инициализация фильтров
+            initFilters();
             
-            return false;
-        }
-
-        // Показ сообщения "Скоро доступно"
-        function showComingSoon(toolName) {
-            // Создаем элемент уведомления
-            const notification = document.createElement('div');
-            notification.textContent = `${toolName} скоро будет доступен!`;
-            notification.style.cssText = `
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                background-color: var(--accent);
-                color: white;
-                padding: 15px 25px;
-                border-radius: var(--radius-sm);
-                box-shadow: var(--shadow);
-                z-index: 10000;
-                animation: slideIn 0.3s ease;
-                font-weight: 500;
-            `;
+            // Инициализация чатов
+            initChats();
             
-            document.body.appendChild(notification);
-            
-            // Добавляем стили для анимации
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes slideIn {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-                @keyframes slideOut {
-                    from { transform: translateX(0); opacity: 1; }
-                    to { transform: translateX(100%); opacity: 0; }
-                }
-            `;
-            document.head.appendChild(style);
-            
-            // Удаляем уведомление через 3 секунды
-            setTimeout(() => {
-                notification.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 300);
-            }, 3000);
-            
-            return false;
-        }
-
-        // Инициализация при загрузке страницы
-        document.addEventListener('DOMContentLoaded', function() {
-            // Устанавливаем активную секцию на основе хэша URL
-            const hash = window.location.hash.substring(1);
-            if (hash && ['home', 'assistant', 'blur'].includes(hash)) {
-                switchSection(hash);
-            } else {
-                switchSection('home');
-            }
+            // Инициализация футера
+            initFooter();
         });
+        
+        // Проверка авторизации
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (session) {
+                currentUser = session.user;
+                await loadUserProfile();
+                updateUIForAuth(true);
+            } else {
+                updateUIForAuth(false);
+            }
+            
+            // Слушатель изменений авторизации
+            supabase.auth.onAuthStateChange(async (event, session) => {
+                if (event === 'SIGNED_IN' && session) {
+                    currentUser = session.user;
+                    await loadUserProfile();
+                    updateUIForAuth(true);
+                    await loadListings();
+                } else if (event === 'SIGNED_OUT') {
+                    currentUser = null;
+                    updateUIForAuth(false);
+                    await loadListings();
+                }
+            });
+        }
+        
+        // Загрузка профиля пользователя
+        async function loadUserProfile() {
+            if (!currentUser) return;
+            
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('username, avatar_url')
+                .eq('id', currentUser.id)
+                .single();
+            
+            if (error && error.code !== 'PGRST116') {
+                console.error('Ошибка загрузки профиля:', error);
+                return;
+            }
+            
+            if (data) {
+                const displayName = data.username || currentUser.email.split('@')[0];
+                userName.textContent = displayName;
+                userAvatar.textContent = displayName.charAt(0).toUpperCase();
+                
+                // Обновление текущего пользователя
+                currentUser.username = data.username;
+                currentUser.avatar_url = data.avatar_url;
+            } else {
+                // Создание профиля, если он не существует
+                const username = currentUser.email.split('@')[0];
+                const { error: insertError } = await supabase
+                    .from('profiles')
+                    .insert([
+                        {
+                            id: currentUser.id,
+                            username: username,
+                            avatar_url: null,
+                            created_at: new Date().toISOString()
+                        }
+                    ]);
+                
+                if (insertError) {
+                    console.error('Ошибка создания профиля:', insertError);
+                } else {
+                    userName.textContent = username;
+                    userAvatar.textContent = username.charAt(0).toUpperCase();
+                    currentUser.username = username;
+                }
+            }
+        }
+        
+        // Обновление UI в зависимости от авторизации
+        function updateUIForAuth(isAuthenticated) {
+            if (isAuthenticated) {
+                userInfo.style.display = 'flex';
+                userName.textContent = currentUser?.username || 'Пользователь';
+                userAvatar.textContent = (currentUser?.username || 'П').charAt(0).toUpperCase();
+                
+                // Показываем кнопку выхода
+                userInfo.onclick = async () => {
+                    await supabase.auth.signOut();
+                };
+            } else {
+                userInfo.style.display = 'flex';
+                userName.textContent = 'Войти';
+                userAvatar.textContent = '?';
+                
+                // Показываем модалку входа
+                userInfo.onclick = () => {
+                    authModal.classList.add('active');
+                    document.querySelector('.auth-tab.active').click();
+                };
+            }
+        }
+        
+        // Инициализация навигации
+        function initNavigation() {
+            // Обработка кликов по навигации
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    const page = link.getAttribute('data-page');
+                    switchPage(page);
+                });
+            });
+            
+            // Кнопка размещения объявления
+            createListingBtn.addEventListener('click', () => {
+                if (!currentUser) {
+                    authModal.classList.add('active');
+                    return;
+                }
+                switchPage('create');
+            });
+            
+            // Логотип
+            goToHome.addEventListener('click', () => {
+                switchPage('home');
+            });
+            
+            // Закрытие модалки аутентификации
+            authModal.addEventListener('click', (e) => {
+                if (e.target === authModal) {
+                    authModal.classList.remove('active');
+                }
+            });
+        }
+        
+        // Переключение страниц
+        function switchPage(page) {
+            // Обновление активной страницы
+            currentPage = page;
+            
+            // Обновление навигации
+            navLinks.forEach(link => {
+                if (link.getAttribute('data-page') === page) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            
+            // Показ активной секции
+            pageSections.forEach(section => {
+                if (section.id === `${page}Section`) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+            
+            // Загрузка данных для страницы
+            if (page === 'home') {
+                loadFeaturedListings();
+            } else if (page === 'listings') {
+                loadAllListings();
+            } else if (page === 'messages') {
+                loadConversations();
+            } else if (page === 'favorites') {
+                loadFavorites();
+            }
+        }
+        
+        // Инициализация форм
+        function initForms() {
+            // Переключение вкладок аутентификации
+            authTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    authTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    loginForm.classList.remove('active');
+                    registerForm.classList.remove('active');
+                    
+                    if (tabId === 'login') {
+                        loginForm.classList.add('active');
+                    } else {
+                        registerForm.classList.add('active');
+                    }
+                });
+            });
+            
+            // Форма входа
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+                
+                if (error) {
+                    alert('Ошибка входа: ' + error.message);
+                    return;
+                }
+                
+                authModal.classList.remove('active');
+                loginForm.reset();
+            });
+            
+            // Форма регистрации
+            registerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const username = document.getElementById('registerUsername').value;
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            username: username
+                        }
+                    }
+                });
+                
+                if (error) {
+                    alert('Ошибка регистрации: ' + error.message);
+                    return;
+                }
+                
+                alert('Регистрация успешна! Проверьте вашу почту для подтверждения.');
+                authModal.classList.remove('active');
+                registerForm.reset();
+                document.querySelector('[data-tab="login"]').click();
+            });
+            
+            // Форма создания объявления
+            createListingForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                if (!currentUser) {
+                    alert('Войдите в систему, чтобы разместить объявление');
+                    authModal.classList.add('active');
+                    return;
+                }
+                
+                const type = document.getElementById('listingType').value;
+                const category = document.getElementById('listingCategory').value;
+                const title = document.getElementById('listingTitle').value;
+                const description = document.getElementById('listingDescription').value;
+                const price = parseInt(document.getElementById('listingPrice').value);
+                const contact = document.getElementById('listingContact').value;
+                const image_url = document.getElementById('listingImage').value || null;
+                
+                const { data, error } = await supabase
+                    .from('listings')
+                    .insert([
+                        {
+                            user_id: currentUser.id,
+                            type: type,
+                            category: category,
+                            title: title,
+                            description: description,
+                            price: price,
+                            contact_info: contact,
+                            image_url: image_url,
+                            created_at: new Date().toISOString(),
+                            is_active: true
+                        }
+                    ])
+                    .select();
+                
+                if (error) {
+                    alert('Ошибка создания объявления: ' + error.message);
+                    return;
+                }
+                
+                alert('Объявление успешно размещено!');
+                createListingForm.reset();
+                
+                // Переходим на страницу объявлений
+                switchPage('listings');
+                
+                // Обновляем список объявлений
+                await loadListings();
+                loadAllListings();
+            });
+        }
+        
+        // Загрузка объявлений
+        async function loadListings() {
+            let query = supabase
+                .from('listings')
+                .select('*, profiles(username, avatar_url)')
+                .eq('is_active', true)
+                .order('created_at', { ascending: false });
+            
+            const { data, error } = await query;
+            
+            if (error) {
+                console.error('Ошибка загрузки объявлений:', error);
+                return;
+            }
+            
+            listings = data;
+        }
+        
+        // Загрузка количества по категориям
+        async function loadCategoriesCount() {
+            const categories = ['plate', 'clothing', 'car', 'business', 'property', 'accessory'];
+            
+            for (const category of categories) {
+                const { count, error } = await supabase
+                    .from('listings')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('category', category)
+                    .eq('is_active', true);
+                
+                if (!error) {
+                    document.getElementById(`${category}Count`).textContent = `${count} объявлений`;
+                }
+            }
+        }
+        
+        // Загрузка популярных объявлений
+        async function loadFeaturedListings() {
+            const container = document.getElementById('featuredListings');
+            if (!container) return;
+            
+            // Фильтрация по выбранному фильтру
+            let filteredListings = listings;
+            if (currentCategoryFilter !== 'all') {
+                filteredListings = listings.filter(listing => listing.type === currentCategoryFilter);
+            }
+            
+            // Берем первые 6 объявлений
+            const featured = filteredListings.slice(0, 6);
+            
+            renderListings(featured, container);
+        }
+        
+        // Загрузка всех объявлений
+        async function loadAllListings() {
+            const container = document.getElementById('allListings');
+            if (!container) return;
+            
+            // Фильтрация по выбранному фильтру
+            let filteredListings = listings;
+            
+            if (currentCategoryFilter === 'sale' || currentCategoryFilter === 'purchase') {
+                filteredListings = listings.filter(listing => listing.type === currentCategoryFilter);
+            } else if (currentCategoryFilter === 'my' && currentUser) {
+                filteredListings = listings.filter(listing => listing.user_id === currentUser.id);
+            }
+            
+            renderListings(filteredListings, container);
+        }
+        
+        // Загрузка избранных объявлений
+        async function loadFavorites() {
+            const container = document.getElementById('favoritesListings');
+            if (!container) return;
+            
+            if (!currentUser) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <div class="empty-state-icon"><i class="far fa-heart"></i></div>
+                        <div style="font-size: 18px; margin-bottom: var(--space-sm);">Войдите в систему</div>
+                        <div style="color: var(--text-secondary); margin-bottom: var(--space-lg);">Чтобы просмотреть избранное, необходимо войти в систему</div>
+                        <button class="btn btn-primary" id="loginFromFavorites">Войти</button>
+                    </div>
+                `;
+                
+                document.getElementById('loginFromFavorites')?.addEventListener('click', () => {
+                    authModal.classList.add('active');
+                });
+                
+                return;
+            }
+            
+            // Загрузка избранных объявлений
+            const { data: favorites, error } = await supabase
+                .from('favorites')
+                .select('listing_id')
+                .eq('user_id', currentUser.id);
+            
+            if (error) {
+                console.error('Ошибка загрузки избранного:', error);
+                return;
+            }
+            
+            const favoriteIds = favorites.map(f => f.listing_id);
+            const favoriteListings = listings.filter(listing => favoriteIds.includes(listing.id));
+            
+            if (favoriteListings.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <div class="empty-state-icon"><i class="far fa-heart"></i></div>
+                        <div style="font-size: 18px; margin-bottom: var(--space-sm);">Нет избранных объявлений</div>
+                        <div style="color: var(--text-secondary);">Добавляйте объявления в избранное, нажимая на сердечко</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            renderListings(favoriteListings, container);
+        }
+        
+        // Рендеринг объявлений
+        function renderListings(listingsArray, container) {
+            if (listingsArray.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <div class="empty-state-icon"><i class="far fa-newspaper"></i></div>
+                        <div style="font-size: 18px; margin-bottom: var(--space-sm);">Объявлений не найдено</div>
+                        <div style="color: var(--text-secondary);">Попробуйте изменить фильтры или создать новое объявление</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = listingsArray.map(listing => {
+                const user = listing.profiles || {};
+                const badgeClass = listing.type === 'sale' ? 'sale' : 'purchase';
+                const badgeText = listing.type === 'sale' ? 'Продажа' : 'Покупка';
+                
+                // Иконка для категории
+                const categoryIcons = {
+                    plate: 'fa-car',
+                    clothing: 'fa-tshirt',
+                    car: 'fa-car-side',
+                    business: 'fa-briefcase',
+                    property: 'fa-home',
+                    accessory: 'fa-gem'
+                };
+                
+                const icon = categoryIcons[listing.category] || 'fa-tag';
+                
+                return `
+                    <div class="listing-card" data-id="${listing.id}">
+                        <div class="listing-image">
+                            <i class="fas ${icon}"></i>
+                            <div class="listing-badge ${badgeClass}">${badgeText}</div>
+                        </div>
+                        <div class="listing-content">
+                            <h3 class="listing-title">${listing.title}</h3>
+                            <p class="listing-description">${listing.description}</p>
+                            <div class="listing-price">$ ${listing.price.toLocaleString()}</div>
+                            <div class="listing-meta">
+                                <span><i class="far fa-user"></i> ${user.username || 'Пользователь'}</span>
+                                <span><i class="far fa-clock"></i> ${formatDate(listing.created_at)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Добавление обработчиков для карточек объявлений
+            container.querySelectorAll('.listing-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const listingId = card.getAttribute('data-id');
+                    openListingModal(listingId);
+                });
+            });
+        }
+        
+        // Форматирование даты
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            
+            if (diffHours < 1) {
+                return 'только что';
+            } else if (diffHours < 24) {
+                return `${diffHours} ч. назад`;
+            } else {
+                return date.toLocaleDateString('ru-RU');
+            }
+        }
+        
+        // Модалка просмотра объявления
+        async function openListingModal(listingId) {
+            const listing = listings.find(l => l.id == listingId);
+            if (!listing) return;
+            
+            const user = listing.profiles || {};
+            const badgeClass = listing.type === 'sale' ? 'sale' : 'purchase';
+            const badgeText = listing.type === 'sale' ? 'Продажа' : 'Покупка';
+            
+            // Создаем модальное окно
+            const modal = document.createElement('div');
+            modal.className = 'auth-modal active';
+            modal.innerHTML = `
+                <div class="auth-container" style="max-width: 600px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-lg);">
+                        <h2 style="font-size: 24px; font-weight: 700;">${listing.title}</h2>
+                        <button class="btn btn-secondary" id="closeModalBtn" style="padding: var(--space-xs) var(--space-sm);">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div style="display: flex; gap: var(--space-lg); margin-bottom: var(--space-lg);">
+                        <div style="flex: 1;">
+                            <div style="background-color: var(--bg-tertiary); height: 200px; border-radius: var(--radius-medium); display: flex; align-items: center; justify-content: center; color: var(--text-tertiary); font-size: 48px; margin-bottom: var(--space-md);">
+                                <i class="fas fa-tag"></i>
+                            </div>
+                            <div class="listing-badge ${badgeClass}" style="display: inline-block; margin-bottom: var(--space-md);">${badgeText}</div>
+                            <div style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-md);">$ ${listing.price.toLocaleString()}</div>
+                            <div style="color: var(--text-secondary); margin-bottom: var(--space-md);">
+                                <i class="far fa-user"></i> ${user.username || 'Пользователь'}
+                            </div>
+                            <div style="color: var(--text-secondary);">
+                                <i class="far fa-clock"></i> ${formatDate(listing.created_at)}
+                            </div>
+                        </div>
+                        
+                        <div style="flex: 2;">
+                            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-sm);">Описание</h3>
+                            <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: var(--space-lg);">${listing.description}</p>
+                            
+                            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-sm);">Контактная информация</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">${listing.contact_info}</p>
+                            
+                            <div style="display: flex; gap: var(--space-sm);">
+                                ${currentUser && currentUser.id !== listing.user_id ? `
+                                    <button class="btn btn-primary" id="sendMessageBtnModal">
+                                        <i class="fas fa-comment"></i> Написать сообщение
+                                    </button>
+                                ` : ''}
+                                
+                                ${currentUser ? `
+                                    <button class="btn btn-secondary" id="toggleFavoriteBtn">
+                                        <i class="far fa-heart"></i> В избранное
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Обработчики событий
+            document.getElementById('closeModalBtn').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            });
+            
+            // Кнопка "Написать сообщение"
+            const sendMessageBtn = document.getElementById('sendMessageBtnModal');
+            if (sendMessageBtn) {
+                sendMessageBtn.addEventListener('click', async () => {
+                    if (!currentUser) {
+                        authModal.classList.add('active');
+                        document.body.removeChild(modal);
+                        return;
+                    }
+                    
+                    // Создание или переход к диалогу
+                    await startConversation(listing.user_id, user.username || 'Пользователь', listing.title);
+                    document.body.removeChild(modal);
+                    switchPage('messages');
+                });
+            }
+            
+            // Кнопка "В избранное"
+            const toggleFavoriteBtn = document.getElementById('toggleFavoriteBtn');
+            if (toggleFavoriteBtn) {
+                // Проверяем, есть ли уже в избранном
+                const { data: existingFavorite } = await supabase
+                    .from('favorites')
+                    .select('id')
+                    .eq('user_id', currentUser.id)
+                    .eq('listing_id', listingId)
+                    .single();
+                
+                if (existingFavorite) {
+                    toggleFavoriteBtn.innerHTML = '<i class="fas fa-heart"></i> В избранном';
+                    toggleFavoriteBtn.style.backgroundColor = 'var(--accent-red)';
+                    toggleFavoriteBtn.style.color = 'white';
+                }
+                
+                toggleFavoriteBtn.addEventListener('click', async () => {
+                    if (!currentUser) {
+                        authModal.classList.add('active');
+                        return;
+                    }
+                    
+                    if (existingFavorite) {
+                        // Удаление из избранного
+                        await supabase
+                            .from('favorites')
+                            .delete()
+                            .eq('id', existingFavorite.id);
+                        
+                        toggleFavoriteBtn.innerHTML = '<i class="far fa-heart"></i> В избранное';
+                        toggleFavoriteBtn.style.backgroundColor = '';
+                        toggleFavoriteBtn.style.color = '';
+                    } else {
+                        // Добавление в избранное
+                        await supabase
+                            .from('favorites')
+                            .insert([
+                                {
+                                    user_id: currentUser.id,
+                                    listing_id: listingId,
+                                    created_at: new Date().toISOString()
+                                }
+                            ]);
+                        
+                        toggleFavoriteBtn.innerHTML = '<i class="fas fa-heart"></i> В избранном';
+                        toggleFavoriteBtn.style.backgroundColor = 'var(--accent-red)';
+                        toggleFavoriteBtn.style.color = 'white';
+                    }
+                    
+                    // Обновляем страницу избранного, если она активна
+                    if (currentPage === 'favorites') {
+                        loadFavorites();
+                    }
+                });
+            }
+        }
+        
+        // Инициализация фильтров
+        function initFilters() {
+            // Фильтры на главной
+            const homeFilterTabs = document.querySelectorAll('#homeFilterTabs .filter-tab');
+            homeFilterTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    homeFilterTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    currentCategoryFilter = tab.getAttribute('data-filter');
+                    loadFeaturedListings();
+                });
+            });
+            
+            // Фильтры на странице объявлений
+            const listingsFilterTabs = document.querySelectorAll('#listingsFilterTabs .filter-tab');
+            listingsFilterTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    listingsFilterTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    currentCategoryFilter = tab.getAttribute('data-filter');
+                    loadAllListings();
+                });
+            });
+            
+            // Клики по категориям
+            document.querySelectorAll('.category-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const category = card.getAttribute('data-category');
+                    
+                    // Переходим на страницу объявлений
+                    switchPage('listings');
+                    
+                    // Устанавливаем фильтр по категории
+                    setTimeout(() => {
+                        // Здесь можно добавить фильтрацию по категории
+                        // В текущей реализации просто переходим на страницу объявлений
+                    }, 100);
+                });
+            });
+        }
+        
+        // Инициализация чатов
+        function initChats() {
+            // Элементы чата
+            const chatInput = document.getElementById('chatInput');
+            const sendMessageBtn = document.getElementById('sendMessageBtn');
+            const chatInputContainer = document.getElementById('chatInputContainer');
+            
+            // Отправка сообщения
+            sendMessageBtn.addEventListener('click', sendMessage);
+            
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+        
+        // Загрузка диалогов
+        async function loadConversations() {
+            if (!currentUser) {
+                const conversationsList = document.getElementById('conversationsList');
+                const chatMessages = document.getElementById('chatMessages');
+                const chatHeader = document.getElementById('chatHeader');
+                const chatInputContainer = document.getElementById('chatInputContainer');
+                
+                conversationsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="far fa-comments"></i></div>
+                        <div style="font-size: 16px; margin-bottom: var(--space-sm);">Войдите в систему</div>
+                        <div style="color: var(--text-secondary); margin-bottom: var(--space-lg);">Чтобы просмотреть сообщения, необходимо войти в систему</div>
+                        <button class="btn btn-primary" id="loginFromMessages">Войти</button>
+                    </div>
+                `;
+                
+                chatMessages.innerHTML = `
+                    <div class="empty-state" style="margin: auto;">
+                        <div class="empty-state-icon"><i class="far fa-comments"></i></div>
+                        <div style="font-size: 18px; margin-bottom: var(--space-sm);">Нет активного диалога</div>
+                        <div style="color: var(--text-secondary);">Войдите в систему, чтобы начать общение</div>
+                    </div>
+                `;
+                
+                chatHeader.querySelector('#chatUserName').textContent = 'Выберите диалог';
+                chatHeader.querySelector('#chatUserStatus').textContent = 'Войдите в систему';
+                chatInputContainer.style.display = 'none';
+                
+                document.getElementById('loginFromMessages')?.addEventListener('click', () => {
+                    authModal.classList.add('active');
+                });
+                
+                return;
+            }
+            
+            // Загрузка диалогов текущего пользователя
+            const { data, error } = await supabase
+                .from('conversations')
+                .select('*, participant1:profiles!conversations_participant1_fkey(username, avatar_url), participant2:profiles!conversations_participant2_fkey(username, avatar_url)')
+                .or(`participant1.eq.${currentUser.id},participant2.eq.${currentUser.id}`)
+                .order('last_message_at', { ascending: false });
+            
+            if (error) {
+                console.error('Ошибка загрузки диалогов:', error);
+                return;
+            }
+            
+            conversations = data;
+            renderConversations();
+            
+            // Подписка на новые сообщения
+            const channel = supabase
+                .channel('messages')
+                .on('postgres_changes', 
+                    { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=in.(${conversations.map(c => c.id).join(',')})` }, 
+                    async (payload) => {
+                        // Обновляем последнее сообщение в диалоге
+                        const conversation = conversations.find(c => c.id === payload.new.conversation_id);
+                        if (conversation) {
+                            conversation.last_message = payload.new.content;
+                            conversation.last_message_at = payload.new.created_at;
+                            
+                            // Если это активный диалог, добавляем сообщение в чат
+                            if (currentChat && currentChat.id === conversation.id) {
+                                await loadChatMessages();
+                            }
+                            
+                            // Перерисовываем список диалогов
+                            renderConversations();
+                        }
+                    }
+                )
+                .subscribe();
+        }
+        
+        // Рендеринг списка диалогов
+        function renderConversations() {
+            const container = document.getElementById('conversationsList');
+            if (!container) return;
+            
+            if (conversations.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="far fa-comments"></i></div>
+                        <div style="font-size: 16px; margin-bottom: var(--space-sm);">Нет диалогов</div>
+                        <div style="color: var(--text-secondary);">Начните общение, написав продавцу или покупателю</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = conversations.map(conversation => {
+                // Определяем собеседника
+                const isParticipant1 = conversation.participant1.id === currentUser.id;
+                const otherUser = isParticipant1 ? conversation.participant2 : conversation.participant1;
+                
+                const avatarText = otherUser.username ? otherUser.username.charAt(0).toUpperCase() : '?';
+                const isActive = currentChat && currentChat.id === conversation.id;
+                
+                return `
+                    <div class="conversation-item ${isActive ? 'active' : ''}" data-id="${conversation.id}">
+                        <div class="conversation-user">
+                            <div class="conversation-avatar">${avatarText}</div>
+                            <div>
+                                <div class="conversation-name">${otherUser.username || 'Пользователь'}</div>
+                                <div class="conversation-preview">${conversation.last_message || 'Нет сообщений'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Обработчики кликов по диалогам
+            container.querySelectorAll('.conversation-item').forEach(item => {
+                item.addEventListener('click', async () => {
+                    const conversationId = item.getAttribute('data-id');
+                    const conversation = conversations.find(c => c.id == conversationId);
+                    
+                    if (conversation) {
+                        await openChat(conversation);
+                    }
+                });
+            });
+        }
+        
+        // Открытие чата
+        async function openChat(conversation) {
+            currentChat = conversation;
+            
+            // Определяем собеседника
+            const isParticipant1 = conversation.participant1.id === currentUser.id;
+            const otherUser = isParticipant1 ? conversation.participant2 : conversation.participant1;
+            
+            // Обновляем заголовок чата
+            document.getElementById('chatAvatar').textContent = otherUser.username ? otherUser.username.charAt(0).toUpperCase() : '?';
+            document.getElementById('chatUserName').textContent = otherUser.username || 'Пользователь';
+            document.getElementById('chatUserStatus').textContent = 'онлайн';
+            
+            // Показываем поле ввода
+            document.getElementById('chatInputContainer').style.display = 'flex';
+            document.getElementById('chatInput').disabled = false;
+            document.getElementById('sendMessageBtn').disabled = false;
+            
+            // Загружаем сообщения
+            await loadChatMessages();
+            
+            // Обновляем активный диалог в списке
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                if (item.getAttribute('data-id') == conversation.id) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+        
+        // Загрузка сообщений чата
+        async function loadChatMessages() {
+            if (!currentChat) return;
+            
+            const { data: messages, error } = await supabase
+                .from('messages')
+                .select('*')
+                .eq('conversation_id', currentChat.id)
+                .order('created_at', { ascending: true });
+            
+            if (error) {
+                console.error('Ошибка загрузки сообщений:', error);
+                return;
+            }
+            
+            renderChatMessages(messages);
+        }
+        
+        // Рендеринг сообщений чата
+        function renderChatMessages(messages) {
+            const container = document.getElementById('chatMessages');
+            if (!container) return;
+            
+            if (messages.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="margin: auto;">
+                        <div class="empty-state-icon"><i class="far fa-comments"></i></div>
+                        <div style="font-size: 16px; margin-bottom: var(--space-sm);">Нет сообщений</div>
+                        <div style="color: var(--text-secondary);">Начните общение, отправив первое сообщение</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = messages.map(message => {
+                const isSent = message.sender_id === currentUser.id;
+                const messageClass = isSent ? 'sent' : 'received';
+                
+                return `
+                    <div class="message ${messageClass}">
+                        ${message.content}
+                    </div>
+                `;
+            }).join('');
+            
+            // Прокручиваем вниз
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // Отправка сообщения
+        async function sendMessage() {
+            if (!currentChat || !currentUser) return;
+            
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Отправка сообщения
+            const { error } = await supabase
+                .from('messages')
+                .insert([
+                    {
+                        conversation_id: currentChat.id,
+                        sender_id: currentUser.id,
+                        content: message,
+                        created_at: new Date().toISOString()
+                    }
+                ]);
+            
+            if (error) {
+                console.error('Ошибка отправки сообщения:', error);
+                return;
+            }
+            
+            // Обновляем время последнего сообщения в диалоге
+            await supabase
+                .from('conversations')
+                .update({ last_message: message, last_message_at: new Date().toISOString() })
+                .eq('id', currentChat.id);
+            
+            // Очищаем поле ввода
+            input.value = '';
+            
+            // Обновляем сообщения (через подписку)
+        }
+        
+        // Начало нового диалога
+        async function startConversation(otherUserId, otherUserName, listingTitle) {
+            if (!currentUser) return;
+            
+            // Проверяем, есть ли уже диалог
+            const { data: existingConversations } = await supabase
+                .from('conversations')
+                .select('*')
+                .or(`and(participant1.eq.${currentUser.id},participant2.eq.${otherUserId}),and(participant1.eq.${otherUserId},participant2.eq.${currentUser.id})`);
+            
+            let conversation;
+            
+            if (existingConversations && existingConversations.length > 0) {
+                conversation = existingConversations[0];
+            } else {
+                // Создаем новый диалог
+                const { data, error } = await supabase
+                    .from('conversations')
+                    .insert([
+                        {
+                            participant1: currentUser.id,
+                            participant2: otherUserId,
+                            last_message: `Привет! Меня интересует ваше объявление "${listingTitle}"`,
+                            last_message_at: new Date().toISOString(),
+                            created_at: new Date().toISOString()
+                        }
+                    ])
+                    .select()
+                    .single();
+                
+                if (error) {
+                    console.error('Ошибка создания диалога:', error);
+                    return;
+                }
+                
+                conversation = data;
+                
+                // Отправляем первое сообщение
+                await supabase
+                    .from('messages')
+                    .insert([
+                        {
+                            conversation_id: conversation.id,
+                            sender_id: currentUser.id,
+                            content: `Привет! Меня интересует ваше объявление "${listingTitle}"`,
+                            created_at: new Date().toISOString()
+                        }
+                    ]);
+            }
+            
+            // Обновляем список диалогов
+            await loadConversations();
+            
+            // Открываем чат
+            await openChat(conversation);
+        }
+        
+        // Инициализация футера
+        function initFooter() {
+            // Клики по категориям в футере
+            document.querySelectorAll('.footer-links a[data-category]').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const category = link.getAttribute('data-category');
+                    
+                    // Переходим на главную страницу
+                    switchPage('home');
+                    
+                    // Здесь можно добавить выделение категории
+                });
+            });
+        }
     </script>
 </body>
 </html>
