@@ -6,7 +6,6 @@
     <title>BeyMarket — Маркетплейс игрового имущества</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-primary: #f8f9fa;
@@ -133,7 +132,7 @@
             overflow-y: auto;
         }
         
-        /* Навигация - ИСПРАВЛЕНА РАССТАНОВКА */
+        /* Навигация */
         .navbar {
             position: sticky;
             top: 0;
@@ -153,17 +152,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: var(--space-md);
-            flex-wrap: wrap;
         }
         
-        /* ИСПРАВЛЕНИЕ: Логотип и навигационные кнопки выровнены */
-        .logo-section {
+        /* Логотип */
+        .logo-container {
             display: flex;
             align-items: center;
-            gap: var(--space-xl);
-            flex: 1;
-            min-width: 300px;
+            gap: var(--space-md);
         }
         
         .logo {
@@ -175,7 +170,7 @@
             color: var(--text-primary);
             text-decoration: none;
             cursor: pointer;
-            white-space: nowrap;
+            flex-shrink: 0;
         }
         
         .logo-icon {
@@ -191,10 +186,17 @@
             font-size: 18px;
         }
         
+        /* Навигационные ссылки */
+        .nav-links-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+        
         .nav-links {
             display: flex;
             gap: var(--space-lg);
-            flex-wrap: wrap;
+            margin-left: var(--space-xl);
         }
         
         .nav-link {
@@ -228,9 +230,7 @@
             display: flex;
             align-items: center;
             gap: var(--space-md);
-            flex-wrap: wrap;
-            justify-content: flex-end;
-            min-width: 200px;
+            flex-shrink: 0;
         }
         
         .user-info {
@@ -325,6 +325,11 @@
             transform: translateY(0);
         }
         
+        .btn-sm {
+            padding: var(--space-xs) var(--space-md);
+            font-size: 14px;
+        }
+        
         /* Страницы */
         .page {
             display: none;
@@ -347,8 +352,6 @@
             justify-content: space-between;
             align-items: center;
             margin: var(--space-xl) 0 var(--space-lg);
-            flex-wrap: wrap;
-            gap: var(--space-md);
         }
         
         .section-title {
@@ -672,8 +675,6 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: var(--space-lg);
-            flex-wrap: wrap;
-            gap: var(--space-md);
         }
         
         .filter-tabs {
@@ -681,7 +682,6 @@
             background-color: var(--bg-tertiary);
             border-radius: var(--radius-medium);
             padding: 4px;
-            flex-wrap: wrap;
         }
         
         .filter-tab {
@@ -691,7 +691,6 @@
             cursor: pointer;
             transition: all 0.2s ease;
             color: var(--text-secondary);
-            white-space: nowrap;
         }
         
         .filter-tab.active {
@@ -817,8 +816,6 @@
             color: var(--text-secondary);
             padding-top: var(--space-md);
             border-top: 1px solid var(--border-light);
-            flex-wrap: wrap;
-            gap: var(--space-sm);
         }
         
         /* Модерация объявлений */
@@ -826,7 +823,6 @@
             display: flex;
             gap: var(--space-xs);
             margin-top: var(--space-md);
-            flex-wrap: wrap;
         }
         
         .moderation-badge {
@@ -851,6 +847,433 @@
         .moderation-badge.rejected {
             background-color: var(--accent-red);
             color: white;
+        }
+        
+        /* Детали объявления - УЛУЧШЕННЫЙ ДИЗАЙН */
+        .listing-details {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .listing-details-header {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-large);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-lg);
+            box-shadow: 0 4px 20px var(--shadow-light);
+        }
+        
+        .listing-details-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+            line-height: 1.2;
+        }
+        
+        .listing-details-price {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent-green);
+            margin-bottom: var(--space-md);
+        }
+        
+        .listing-details-price::after {
+            content: ' ₽';
+            font-size: 24px;
+            color: var(--text-secondary);
+        }
+        
+        .listing-details-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+        
+        .listing-details-meta-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            color: var(--text-secondary);
+        }
+        
+        .listing-details-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .listing-details-image {
+            width: 100%;
+            height: 250px;
+            border-radius: var(--radius-large);
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid var(--border-light);
+            transition: all 0.3s ease;
+        }
+        
+        .listing-details-image:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px var(--shadow-medium);
+        }
+        
+        .listing-details-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .listing-details-image:hover img {
+            transform: scale(1.05);
+        }
+        
+        .listing-details-info {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-large);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-xl);
+            box-shadow: 0 4px 20px var(--shadow-light);
+        }
+        
+        .listing-details-section {
+            margin-bottom: var(--space-xl);
+            padding-bottom: var(--space-lg);
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .listing-details-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .listing-details-section-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: var(--space-md);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .listing-details-section-title i {
+            color: var(--accent-blue);
+        }
+        
+        .seller-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            background-color: var(--bg-tertiary);
+            border-radius: var(--radius-large);
+        }
+        
+        .seller-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--accent-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+        
+        .seller-details {
+            flex: 1;
+        }
+        
+        .seller-name {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .seller-status {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-sm);
+        }
+        
+        /* Сообщения */
+        .messages-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: var(--space-lg);
+            height: 70vh;
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-large);
+            overflow: hidden;
+            box-shadow: 0 4px 20px var(--shadow-light);
+        }
+        
+        .conversations-sidebar {
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .conversations-header {
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .conversations-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .conversation-item {
+            padding: var(--space-md);
+            border-bottom: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .conversation-item:hover {
+            background-color: var(--bg-tertiary);
+        }
+        
+        .conversation-item.active {
+            background-color: var(--accent-blue);
+            color: white;
+        }
+        
+        .conversation-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--accent-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .conversation-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .conversation-name {
+            font-weight: 600;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .conversation-preview {
+            font-size: 14px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .conversation-time {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        
+        .conversation-item.active .conversation-preview,
+        .conversation-item.active .conversation-time {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header {
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: var(--space-lg);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+        
+        .message {
+            max-width: 70%;
+            padding: var(--space-md);
+            border-radius: var(--radius-medium);
+            position: relative;
+        }
+        
+        .message.outgoing {
+            align-self: flex-end;
+            background-color: var(--accent-blue);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message.incoming {
+            align-self: flex-start;
+            background-color: var(--bg-tertiary);
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message-content {
+            word-wrap: break-word;
+        }
+        
+        .message-time {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: var(--space-xs);
+            text-align: right;
+        }
+        
+        .chat-input-container {
+            padding: var(--space-lg);
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            gap: var(--space-sm);
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: var(--space-md);
+            border-radius: var(--radius-medium);
+            border: 1px solid var(--border-light);
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+        
+        /* Избранное */
+        .favorites-container {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-large);
+            padding: var(--space-xl);
+            box-shadow: 0 4px 20px var(--shadow-light);
+        }
+        
+        /* Профиль пользователя */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xl);
+            margin-bottom: var(--space-xl);
+            padding: var(--space-xl);
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-large);
+            box-shadow: 0 4px 20px var(--shadow-light);
+        }
+        
+        .profile-avatar-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: var(--accent-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 48px;
+            flex-shrink: 0;
+        }
+        
+        .profile-info {
+            flex: 1;
+        }
+        
+        .profile-username {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .profile-meta {
+            display: flex;
+            gap: var(--space-xl);
+            margin-bottom: var(--space-md);
+        }
+        
+        .profile-stat {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .profile-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+        
+        .profile-stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .profile-roles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-xs);
+            margin-top: var(--space-md);
+        }
+        
+        .profile-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .profile-tab {
+            padding: var(--space-md) var(--space-lg);
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .profile-tab.active {
+            color: var(--accent-blue);
+        }
+        
+        .profile-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--accent-blue);
+            border-radius: 1.5px;
+        }
+        
+        .profile-content {
+            display: none;
+        }
+        
+        .profile-content.active {
+            display: block;
         }
         
         /* Админ панель */
@@ -893,7 +1316,6 @@
             display: flex;
             border-bottom: 1px solid var(--border-light);
             margin-bottom: var(--space-lg);
-            flex-wrap: wrap;
         }
         
         .admin-tab {
@@ -903,7 +1325,6 @@
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
-            white-space: nowrap;
         }
         
         .admin-tab.active {
@@ -943,8 +1364,6 @@
             padding: var(--space-md);
             border-bottom: 1px solid var(--border-light);
             background-color: var(--bg-secondary);
-            flex-wrap: wrap;
-            gap: var(--space-md);
         }
         
         .user-item:last-child {
@@ -1068,37 +1487,6 @@
             border-left: 4px solid var(--accent-blue);
         }
         
-        /* Заставка регистрации - УПРОЩЕНА */
-        .registration-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg-primary);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            padding: var(--space-md);
-        }
-        
-        .registration-overlay.active {
-            display: flex;
-        }
-        
-        .registration-content {
-            text-align: center;
-            max-width: 400px;
-            padding: var(--space-xl);
-        }
-        
-        .registration-icon {
-            font-size: 48px;
-            color: var(--accent-blue);
-            margin-bottom: var(--space-lg);
-        }
-        
         /* Галерея изображений */
         .image-gallery {
             display: grid;
@@ -1157,6 +1545,58 @@
             font-size: 32px;
             cursor: pointer;
             z-index: 2001;
+        }
+        
+        /* Правила */
+        .rules-container {
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-large);
+            padding: var(--space-xl);
+            margin: var(--space-xl) 0;
+            box-shadow: 0 4px 20px var(--shadow-light);
+        }
+        
+        .rules-section {
+            margin-bottom: var(--space-xl);
+            padding-bottom: var(--space-lg);
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .rules-section:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .rules-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: var(--space-md);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .rules-title i {
+            color: var(--accent-blue);
+        }
+        
+        .rules-list {
+            list-style-type: none;
+        }
+        
+        .rules-list li {
+            margin-bottom: var(--space-sm);
+            padding-left: var(--space-lg);
+            position: relative;
+        }
+        
+        .rules-list li:before {
+            content: "•";
+            color: var(--accent-blue);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
         }
         
         /* Футер */
@@ -1225,23 +1665,50 @@
             color: var(--text-tertiary);
         }
         
+        /* Приветственное сообщение */
+        .welcome-message {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: white;
+            padding: var(--space-lg) var(--space-xl);
+            border-radius: var(--radius-large);
+            margin: var(--space-xl) 0;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 122, 255, 0.2);
+        }
+        
+        .welcome-message h2 {
+            font-size: 28px;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .welcome-message p {
+            font-size: 18px;
+            margin-bottom: var(--space-lg);
+            opacity: 0.9;
+        }
+        
         /* Адаптивность */
-        @media (max-width: 992px) {
+        @media (max-width: 768px) {
             .navbar-content {
-                flex-direction: column;
-                gap: var(--space-md);
+                flex-wrap: wrap;
             }
             
-            .logo-section {
-                min-width: 100%;
+            .logo-container {
+                width: 100%;
                 justify-content: space-between;
+                margin-bottom: var(--space-sm);
+            }
+            
+            .nav-links-container {
+                width: 100%;
+                order: 3;
             }
             
             .nav-links {
-                order: 3;
-                width: 100%;
+                margin-left: 0;
                 justify-content: center;
                 gap: var(--space-md);
+                flex-wrap: wrap;
             }
             
             .nav-link.active::after {
@@ -1249,12 +1716,9 @@
             }
             
             .user-actions {
-                min-width: 100%;
-                justify-content: center;
+                order: 2;
             }
-        }
-        
-        @media (max-width: 768px) {
+            
             .categories {
                 grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             }
@@ -1267,6 +1731,16 @@
                 grid-template-columns: 1fr;
             }
             
+            .user-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-md);
+            }
+            
+            .admin-actions {
+                align-self: flex-end;
+            }
+            
             .form-row {
                 grid-template-columns: 1fr;
             }
@@ -1275,32 +1749,31 @@
                 grid-template-columns: 1fr;
             }
             
-            .listing-meta {
+            .profile-header {
                 flex-direction: column;
-                gap: var(--space-xs);
-            }
-        }
-        
-        @media (max-width: 576px) {
-            .modal-content {
-                padding: var(--space-lg);
+                text-align: center;
+                gap: var(--space-lg);
             }
             
-            .section-title {
-                font-size: 24px;
+            .profile-meta {
+                flex-direction: column;
+                gap: var(--space-md);
             }
             
-            .logo {
-                font-size: 18px;
+            .listing-details-header {
+                flex-direction: column;
+                gap: var(--space-md);
             }
             
-            .nav-link {
-                font-size: 14px;
+            .messages-container {
+                grid-template-columns: 1fr;
+                height: 80vh;
             }
             
-            .btn {
-                padding: var(--space-sm) var(--space-md);
-                font-size: 14px;
+            .conversations-sidebar {
+                border-right: none;
+                border-bottom: 1px solid var(--border-light);
+                max-height: 40vh;
             }
         }
     </style>
@@ -1316,25 +1789,6 @@
     <div id="fullscreenImage" class="fullscreen-image" style="display: none;">
         <button class="close-fullscreen" onclick="closeFullscreen()">×</button>
         <img id="fullscreenImg" src="" alt="">
-    </div>
-
-    <!-- Новая упрощенная заставка -->
-    <div id="registrationOverlay" class="registration-overlay">
-        <div class="registration-content">
-            <div class="registration-icon">
-                <i class="fas fa-store"></i>
-            </div>
-            <h1 style="font-size: 28px; font-weight: 700; margin-bottom: var(--space-sm);">BeyMarket</h1>
-            <p style="color: var(--text-secondary); margin-bottom: var(--space-xl); font-size: 16px;">
-                Премиальный маркетплейс игрового имущества
-            </p>
-            <button class="btn btn-primary" onclick="showAuthModal()" style="font-size: 16px; padding: var(--space-md) var(--space-lg);">
-                <i class="fas fa-sign-in-alt"></i> Войти в систему
-            </button>
-            <p style="color: var(--text-tertiary); margin-top: var(--space-lg); font-size: 14px;">
-                Для размещения объявлений требуется авторизация
-            </p>
-        </div>
     </div>
 
     <!-- Модалка аутентификации -->
@@ -1395,35 +1849,53 @@
         </div>
     </div>
 
-    <!-- Модалка профиля -->
-    <div id="profileModal" class="modal">
-        <div class="modal-content" id="profileModalContent" style="max-width: 800px;">
-            <!-- Контент загружается динамически -->
+    <!-- Модалка смены пароля -->
+    <div id="changePasswordModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <h2 style="margin-bottom: var(--space-lg);">Смена пароля</h2>
+            <form id="changePasswordForm">
+                <div class="form-group">
+                    <label class="form-label">Текущий пароль</label>
+                    <input type="password" class="form-input" id="currentPassword" placeholder="Введите текущий пароль" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Новый пароль</label>
+                    <input type="password" class="form-input" id="newPassword" placeholder="Минимум 6 символов" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Подтвердите новый пароль</label>
+                    <input type="password" class="form-input" id="confirmNewPassword" placeholder="Повторите новый пароль" required>
+                </div>
+                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-xl);">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-save"></i> Сохранить
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                        Отмена
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Модалка модерации -->
-    <div id="moderationModal" class="modal">
-        <div class="modal-content" id="moderationModalContent" style="max-width: 500px;">
-            <!-- Контент загружается динамически -->
-        </div>
-    </div>
-
-    <!-- Навигация - ИСПРАВЛЕНА -->
+    <!-- Навигация -->
     <nav class="navbar">
         <div class="container navbar-content">
-            <div class="logo-section">
+            <div class="logo-container">
                 <div class="logo" id="goToHome">
                     <div class="logo-icon">B</div>
                     BeyMarket
                 </div>
-                
+            </div>
+            
+            <div class="nav-links-container">
                 <div class="nav-links">
                     <div class="nav-link active" data-page="home">Главная</div>
                     <div class="nav-link" data-page="listings">Объявления</div>
                     <div class="nav-link" data-page="create">Разместить</div>
                     <div class="nav-link" data-page="messages">Сообщения</div>
                     <div class="nav-link" data-page="favorites">Избранное</div>
+                    <div class="nav-link" data-page="rules">Правила</div>
                     <!-- Админ вкладка для Zagitok50 -->
                     <div class="nav-link" data-page="admin" id="adminTab" style="display: none;">
                         <i class="fas fa-crown"></i> Статистика сайта
@@ -1450,6 +1922,15 @@
     </nav>
     
     <main class="container" id="mainContent">
+        <!-- Приветственное сообщение для гостей -->
+        <div id="guestWelcome" class="welcome-message">
+            <h2>Добро пожаловать в BeyMarket!</h2>
+            <p>Премиальный маркетплейс игрового имущества. Для начала работы войдите или зарегистрируйтесь</p>
+            <button class="btn" onclick="showAuthModal()" style="background-color: white; color: var(--accent-blue);">
+                <i class="fas fa-sign-in-alt"></i> Войти или Зарегистрироваться
+            </button>
+        </div>
+        
         <!-- Главная страница -->
         <section id="homePage" class="page active">
             <div class="section-header">
@@ -1657,7 +2138,7 @@
             </form>
         </section>
         
-        <!-- Сообщения -->
+        <!-- Сообщения - ОБНОВЛЕННЫЙ ИНТЕРФЕЙС -->
         <section id="messagesPage" class="page">
             <div class="section-header">
                 <div>
@@ -1687,6 +2168,11 @@
                                 <div style="font-size: 14px; color: var(--text-secondary);" id="chatUserStatus">Нет активного диалога</div>
                             </div>
                         </div>
+                        <div id="chatActions" style="display: none;">
+                            <button class="btn btn-secondary btn-sm" onclick="clearChat()">
+                                <i class="fas fa-trash"></i> Очистить чат
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="chat-messages" id="chatMessages">
@@ -1698,8 +2184,8 @@
                     </div>
                     
                     <div class="chat-input-container" id="chatInputContainer" style="display: none;">
-                        <input type="text" class="chat-input" id="chatInput" placeholder="Введите сообщение..." disabled>
-                        <button class="btn btn-primary" id="sendMessageBtn" disabled><i class="fas fa-paper-plane"></i></button>
+                        <input type="text" class="chat-input" id="chatInput" placeholder="Введите сообщение...">
+                        <button class="btn btn-primary" id="sendMessageBtn"><i class="fas fa-paper-plane"></i></button>
                     </div>
                 </div>
             </div>
@@ -1714,9 +2200,80 @@
                 </div>
             </div>
             
-            <div class="listings-container">
+            <div class="favorites-container">
                 <div class="listings-grid" id="favoritesListings">
                     <!-- Объявления загружаются через JS -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Правила -->
+        <section id="rulesPage" class="page">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Правила BeyMarket</h1>
+                    <p class="section-subtitle">Основные правила и политика платформы</p>
+                </div>
+            </div>
+            
+            <div class="rules-container">
+                <div class="rules-section">
+                    <h2 class="rules-title"><i class="fas fa-gavel"></i> Основные правила</h2>
+                    <ul class="rules-list">
+                        <li>Запрещена продажа запрещенных законом товаров и услуг</li>
+                        <li>Не допускается мошенничество и обман пользователей</li>
+                        <li>Запрещено размещение контента сексуального или порнографического характера</li>
+                        <li>Нельзя публиковать личную информацию других пользователей без их согласия</li>
+                        <li>Запрещены оскорбления, угрозы и дискриминационные высказывания</li>
+                        <li>Не допускается спам и навязчивая реклама</li>
+                    </ul>
+                </div>
+                
+                <div class="rules-section">
+                    <h2 class="rules-title"><i class="fas fa-shopping-cart"></i> Правила торговли</h2>
+                    <ul class="rules-list">
+                        <li>Продавец обязан предоставить полную и достоверную информацию о товаре</li>
+                        <li>Цена должна быть указана корректно и не может быть изменена после подтверждения сделки</li>
+                        <li>Фотографии товара должны соответствовать действительности</li>
+                        <li>Запрещена продажа одного товара нескольким покупателям одновременно</li>
+                        <li>При отмене сделки по инициативе продавца, покупателю должны быть возвращены все средства</li>
+                        <li>Все споры решаются через службу поддержки платформы</li>
+                    </ul>
+                </div>
+                
+                <div class="rules-section">
+                    <h2 class="rules-title"><i class="fas fa-comments"></i> Правила общения</h2>
+                    <ul class="rules-list">
+                        <li>Общайтесь уважительно с другими пользователями</li>
+                        <li>Не переходите на личности в ходе обсуждения товаров</li>
+                        <li>Запрещены попытки обойти систему безопасности платформы</li>
+                        <li>Сообщения должны быть по теме объявления</li>
+                        <li>Не злоупотребляйте функцией жалоб на других пользователей</li>
+                        <li>При нарушении правил чата, пользователь может быть заблокирован</li>
+                    </ul>
+                </div>
+                
+                <div class="rules-section">
+                    <h2 class="rules-title"><i class="fas fa-user-shield"></i> Безопасность</h2>
+                    <ul class="rules-list">
+                        <li>Никогда не передавайте свои учетные данные третьим лицам</li>
+                        <li>Используйте сложные пароли для защиты аккаунта</li>
+                        <li>Внимательно проверяйте информацию о продавце перед сделкой</li>
+                        <li>Сообщайте администрации о подозрительных действиях</li>
+                        <li>Не переходите по подозрительным ссылкам от других пользователей</li>
+                        <li>Храните скриншоты важных переговоров и соглашений</li>
+                    </ul>
+                </div>
+                
+                <div class="rules-section">
+                    <h2 class="rules-title"><i class="fas fa-ban"></i> Санкции за нарушения</h2>
+                    <ul class="rules-list">
+                        <li>Первое нарушение - предупреждение</li>
+                        <li>Повторное нарушение - временная блокировка аккаунта (3 дня)</li>
+                        <li>Систематические нарушения - постоянная блокировка аккаунта</li>
+                        <li>Мошенничество - немедленная блокировка без возможности восстановления</li>
+                        <li>Нарушение законодательства - блокировка и передача данных правоохранительным органам</li>
+                    </ul>
                 </div>
             </div>
         </section>
@@ -1828,6 +2385,20 @@
                 </div>
             </div>
         </section>
+        
+        <!-- Страница просмотра объявления - УЛУЧШЕННЫЙ ДИЗАЙН -->
+        <section id="listingDetailsPage" class="page">
+            <div class="container listing-details">
+                <!-- Контент загружается динамически -->
+            </div>
+        </section>
+        
+        <!-- Страница профиля -->
+        <section id="profilePage" class="page">
+            <div class="container">
+                <!-- Контент загружается динамически -->
+            </div>
+        </section>
     </main>
     
     <!-- Футер -->
@@ -1861,10 +2432,10 @@
                 <div class="footer-section">
                     <h3 class="footer-title">Помощь</h3>
                     <ul class="footer-links">
+                        <li><a href="#" data-page="rules">Правила платформы</a></li>
+                        <li><a href="#" onclick="openSupportChat()">Техническая поддержка</a></li>
                         <li><a href="#" onclick="showNotification('Центр поддержки скоро будет доступен', 'info')">Центр поддержки</a></li>
-                        <li><a href="#" onclick="showNotification('Правила безопасности скоро будут доступны', 'info')">Правила безопасности</a></li>
                         <li><a href="#" onclick="showNotification('Инструкция по продаже скоро будет доступна', 'info')">Как продавать</a></li>
-                        <li><a href="#" onclick="showNotification('Инструкция по покупке скоро будет доступна', 'info')">Как покупать</a></li>
                     </ul>
                 </div>
             </div>
@@ -1876,15 +2447,6 @@
     </footer>
 
     <script>
-        // ============================================
-        // ПОДКЛЮЧЕНИЕ SUPABASE
-        // ============================================
-        const SUPABASE_URL = 'https://wxnidsrdnfndvztdfbxx.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_RCm2OA76-0J3VhoeBoPlLg_A5_QRLEQ';
-        
-        // Инициализация Supabase клиента
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
         // ============================================
         // РОЛИ И ПРАВА ДОСТУПА
         // ============================================
@@ -1925,9 +2487,12 @@
         let favorites = [];
         let conversations = [];
         let uploadedImages = [];
-        let reviews = [];
         let users = []; // Все пользователи системы
         const servers = ['1', '2', '3', '4', '5', '6', '7'];
+        let currentProfileUserId = null;
+        let currentListingId = null;
+        let currentConversationId = null;
+        let supportUserId = 'support-user-id'; // ID пользователя техподдержки
         
         // ============================================
         // ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
@@ -1935,9 +2500,6 @@
         
         document.addEventListener('DOMContentLoaded', function() {
             console.log('BeyMarket запускается...');
-            
-            // Показываем заставку сразу
-            document.getElementById('registrationOverlay').classList.add('active');
             
             // Инициализация состояния приложения
             initAppState();
@@ -1963,10 +2525,16 @@
             // Инициализация цены
             initPriceFormatting();
             
+            // Инициализация темы
+            initTheme();
+            
+            // Показываем/скрываем приветственное сообщение
+            updateGuestWelcome();
+            
             console.log('BeyMarket готов к работе!');
         });
         
-        async function initAppState() {
+        function initAppState() {
             // Проверяем тему
             const savedTheme = localStorage.getItem('beymarket_theme');
             if (savedTheme === 'dark') {
@@ -1974,15 +2542,20 @@
                 updateThemeIcon();
             }
             
-            // Загружаем пользователей из Supabase
-            await loadUsersFromSupabase();
+            // Загружаем пользователей из localStorage
+            const savedUsers = localStorage.getItem('beymarket_users');
+            if (savedUsers) {
+                users = JSON.parse(savedUsers);
+            } else {
+                // Создаем только специального пользователя Zagitok50
+                createInitialUsers();
+            }
             
             // Проверяем, есть ли сохраненный пользователь в localStorage
             const savedUser = localStorage.getItem('beymarket_user');
             if (savedUser) {
                 currentUser = JSON.parse(savedUser);
                 updateUIForAuth(true);
-                hideRegistrationOverlay();
             }
             
             // Загружаем избранное из localStorage
@@ -1991,8 +2564,11 @@
                 favorites = JSON.parse(savedFavorites);
             }
             
-            // Загружаем объявления из Supabase
-            await loadListingsFromSupabase();
+            // Загружаем объявления из localStorage
+            const savedListings = localStorage.getItem('beymarket_listings');
+            if (savedListings) {
+                listings = JSON.parse(savedListings);
+            }
             
             // Загружаем сообщения из localStorage
             const savedConversations = localStorage.getItem('beymarket_conversations');
@@ -2000,254 +2576,60 @@
                 conversations = JSON.parse(savedConversations);
             }
             
-            // Загружаем отзывы из localStorage
-            const savedReviews = localStorage.getItem('beymarket_reviews');
-            if (savedReviews) {
-                reviews = JSON.parse(savedReviews);
+            // Обновляем счетчики категорий
+            updateCategoryCounts();
+        }
+        
+        function updateGuestWelcome() {
+            const guestWelcome = document.getElementById('guestWelcome');
+            if (currentUser) {
+                guestWelcome.style.display = 'none';
+            } else {
+                guestWelcome.style.display = 'block';
             }
         }
         
-        async function loadUsersFromSupabase() {
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*');
-                
-                if (error) throw error;
-                
-                if (data && data.length > 0) {
-                    users = data;
-                } else {
-                    // Создаем начальных пользователей
-                    await createInitialUsers();
-                }
-            } catch (error) {
-                console.error('Ошибка загрузки пользователей из Supabase:', error);
-                // Используем localStorage как fallback
-                const savedUsers = localStorage.getItem('beymarket_users');
-                if (savedUsers) {
-                    users = JSON.parse(savedUsers);
-                } else {
-                    await createInitialUsers();
-                }
-            }
-        }
-        
-        async function createInitialUsers() {
-            try {
-                // Создаем специального пользователя Zagitok50 с высшими ролями
-                const founderUser = {
-                    id: 'user-founder',
-                    username: 'Zagitok50',
-                    password: 'admin123',
-                    servers: ['1', '2', '3', '4', '5', '6', '7'],
-                    roles: [ROLES.FOUNDER, ROLES.ADMIN, ROLES.DEVELOPER],
-                    registration_date: new Date('2023-01-01').toISOString(),
-                    last_login: new Date().toISOString(),
-                    is_online: true,
-                    is_banned: false,
-                    avatar: null,
-                    listings_count: 0,
-                    rating: 5.0,
-                    email: 'zagitok50@beyprov.ru',
-                    created_at: new Date().toISOString()
-                };
-                
-                // Создаем тестовых пользователей
-                const testUsers = [
-                    {
-                        id: 'user-1',
-                        username: 'AlexVIP',
-                        password: 'password123',
-                        servers: ['1', '3', '5'],
-                        roles: [ROLES.USER],
-                        registration_date: new Date('2024-01-15').toISOString(),
-                        last_login: new Date().toISOString(),
-                        is_online: true,
-                        is_banned: false,
-                        avatar: null,
-                        listings_count: 3,
-                        rating: 4.8,
-                        email: null,
-                        created_at: new Date().toISOString()
-                    },
-                    {
-                        id: 'user-2',
-                        username: 'PropertyDealer',
-                        password: 'password123',
-                        servers: ['3', '4'],
-                        roles: [ROLES.USER],
-                        registration_date: new Date('2024-01-10').toISOString(),
-                        last_login: new Date(Date.now() - 3600000).toISOString(),
-                        is_online: false,
-                        is_banned: false,
-                        avatar: null,
-                        listings_count: 2,
-                        rating: 4.5,
-                        email: null,
-                        created_at: new Date().toISOString()
-                    }
-                ];
-                
-                // Сохраняем в Supabase
-                const { error } = await supabase
-                    .from('users')
-                    .insert([founderUser, ...testUsers]);
-                
-                if (error) throw error;
-                
-                users = [founderUser, ...testUsers];
-                localStorage.setItem('beymarket_users', JSON.stringify(users));
-                
-            } catch (error) {
-                console.error('Ошибка создания начальных пользователей:', error);
-                // Fallback на localStorage
-                const founderUser = {
-                    id: 'user-founder',
-                    username: 'Zagitok50',
-                    password: 'admin123',
-                    servers: ['1', '2', '3', '4', '5', '6', '7'],
-                    roles: [ROLES.FOUNDER, ROLES.ADMIN, ROLES.DEVELOPER],
-                    registrationDate: new Date('2023-01-01').toISOString(),
-                    lastLogin: new Date().toISOString(),
-                    isOnline: true,
-                    isBanned: false,
-                    avatar: null,
-                    listingsCount: 0,
-                    rating: 5.0,
-                    email: 'zagitok50@beyprov.ru'
-                };
-                
-                const testUsers = [
-                    {
-                        id: 'user-1',
-                        username: 'AlexVIP',
-                        password: 'password123',
-                        servers: ['1', '3', '5'],
-                        roles: [ROLES.USER],
-                        registrationDate: new Date('2024-01-15').toISOString(),
-                        lastLogin: new Date().toISOString(),
-                        isOnline: true,
-                        isBanned: false,
-                        avatar: null,
-                        listingsCount: 3,
-                        rating: 4.8
-                    },
-                    {
-                        id: 'user-2',
-                        username: 'PropertyDealer',
-                        password: 'password123',
-                        servers: ['3', '4'],
-                        roles: [ROLES.USER],
-                        registrationDate: new Date('2024-01-10').toISOString(),
-                        lastLogin: new Date(Date.now() - 3600000).toISOString(),
-                        isOnline: false,
-                        isBanned: false,
-                        avatar: null,
-                        listingsCount: 2,
-                        rating: 4.5
-                    }
-                ];
-                
-                users = [founderUser, ...testUsers];
-                localStorage.setItem('beymarket_users', JSON.stringify(users));
-            }
-        }
-        
-        async function loadListingsFromSupabase() {
-            try {
-                const { data, error } = await supabase
-                    .from('listings')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                
-                if (error) throw error;
-                
-                if (data && data.length > 0) {
-                    listings = data.map(item => ({
-                        id: item.id,
-                        user_id: item.user_id,
-                        user_name: item.user_name,
-                        type: item.type,
-                        category: item.category,
-                        title: item.title,
-                        description: item.description,
-                        price: item.price,
-                        server: item.server,
-                        plate_number: item.plate_number,
-                        images: item.images || [],
-                        created_at: item.created_at,
-                        is_active: item.is_active,
-                        views: item.views || 0,
-                        moderation_status: item.moderation_status,
-                        moderated_by: item.moderated_by,
-                        moderated_at: item.moderated_at,
-                        moderation_reason: item.moderation_reason
-                    }));
-                } else {
-                    // Создаем тестовые объявления
-                    await generateTestListings();
-                }
-            } catch (error) {
-                console.error('Ошибка загрузки объявлений из Supabase:', error);
-                // Используем localStorage как fallback
-                const savedListings = localStorage.getItem('beymarket_listings');
-                if (savedListings) {
-                    listings = JSON.parse(savedListings);
-                } else {
-                    generateTestListings();
-                }
-            }
-        }
-        
-        async function generateTestListings() {
-            const testListings = [
-                {
-                    id: Date.now().toString(),
-                    user_id: 'user-1',
-                    user_name: 'AlexVIP',
-                    type: 'sale',
-                    category: 'plate',
-                    title: 'Номерной знак "VIP 001"',
-                    description: 'Эксклюзивный номер для автомобиля премиум-класса. Редкий экземпляр.',
-                    price: 45000,
-                    server: '1',
-                    images: [],
-                    plate_number: 'А123АА77',
-                    created_at: new Date('2024-01-15T10:30:00Z').toISOString(),
-                    is_active: true,
-                    views: 124,
-                    moderation_status: 'approved',
-                    moderated_by: 'Zagitok50',
-                    moderated_at: new Date('2024-01-15T10:35:00Z').toISOString(),
-                    moderation_reason: null
-                }
-            ];
+        function createInitialUsers() {
+            // Создаем специального пользователя Zagitok50 с высшими ролями
+            const founderUser = {
+                id: 'user-founder',
+                username: 'Zagitok50',
+                password: 'admin123',
+                servers: ['1', '2', '3', '4', '5', '6', '7'],
+                roles: [ROLES.FOUNDER, ROLES.ADMIN, ROLES.DEVELOPER],
+                registrationDate: new Date('2023-01-01').toISOString(),
+                lastLogin: new Date().toISOString(),
+                isOnline: true,
+                isBanned: false,
+                avatar: null,
+                listingsCount: 0,
+                email: 'zagitok50@beyprov.ru',
+                description: 'Основатель Bey Prov и администратор BeyMarket',
+                phone: null,
+                location: 'Москва'
+            };
             
-            try {
-                const { error } = await supabase
-                    .from('listings')
-                    .insert(testListings);
-                
-                if (error) throw error;
-                
-                listings = testListings;
-                localStorage.setItem('beymarket_listings', JSON.stringify(listings));
-                
-            } catch (error) {
-                console.error('Ошибка создания тестовых объявлений:', error);
-                listings = testListings;
-                localStorage.setItem('beymarket_listings', JSON.stringify(listings));
-            }
-        }
-        
-        function hideRegistrationOverlay() {
-            document.getElementById('registrationOverlay').classList.remove('active');
-        }
-        
-        function showMainContent() {
-            hideRegistrationOverlay();
-            document.getElementById('mainContent').style.display = 'block';
+            // Создаем пользователя техподдержки
+            const supportUser = {
+                id: supportUserId,
+                username: 'Техподдержка BeyMarket',
+                password: 'support123',
+                servers: ['1', '2', '3', '4', '5', '6', '7'],
+                roles: [ROLES.SUPPORT, ROLES.SENIOR_SUPPORT],
+                registrationDate: new Date('2023-01-01').toISOString(),
+                lastLogin: new Date().toISOString(),
+                isOnline: true,
+                isBanned: false,
+                avatar: null,
+                listingsCount: 0,
+                email: 'support@beymarket.ru',
+                description: 'Техническая поддержка BeyMarket. Готовы помочь с любыми вопросами!',
+                phone: null,
+                location: 'Онлайн'
+            };
+            
+            users = [founderUser, supportUser];
+            localStorage.setItem('beymarket_users', JSON.stringify(users));
         }
         
         // ============================================
@@ -2302,6 +2684,8 @@
             const priceInput = document.getElementById('listingPrice');
             const pricePreview = document.getElementById('pricePreview');
             
+            if (!priceInput) return;
+            
             priceInput.addEventListener('input', function() {
                 const value = this.value;
                 if (value && !isNaN(value) && value >= 0) {
@@ -2349,22 +2733,24 @@
         function initServers() {
             // Инициализация выбора серверов при регистрации
             const serverSelection = document.getElementById('serverSelection');
-            servers.forEach(server => {
-                const checkbox = document.createElement('div');
-                checkbox.className = 'server-checkbox';
-                checkbox.innerHTML = `
-                    <input type="checkbox" id="server-${server}" value="${server}">
-                    <label for="server-${server}">Сервер ${server}</label>
-                `;
-                
-                checkbox.addEventListener('click', function() {
-                    this.classList.toggle('selected');
-                    const input = this.querySelector('input');
-                    input.checked = !input.checked;
+            if (serverSelection) {
+                servers.forEach(server => {
+                    const checkbox = document.createElement('div');
+                    checkbox.className = 'server-checkbox';
+                    checkbox.innerHTML = `
+                        <input type="checkbox" id="server-${server}" value="${server}">
+                        <label for="server-${server}">Сервер ${server}</label>
+                    `;
+                    
+                    checkbox.addEventListener('click', function() {
+                        this.classList.toggle('selected');
+                        const input = this.querySelector('input');
+                        input.checked = !input.checked;
+                    });
+                    
+                    serverSelection.appendChild(checkbox);
                 });
-                
-                serverSelection.appendChild(checkbox);
-            });
+            }
             
             // Инициализация фильтров серверов на главной
             initServerFilter('homeServerFilter');
@@ -2375,6 +2761,8 @@
         
         function initServerFilter(containerId) {
             const container = document.getElementById(containerId);
+            if (!container) return;
+            
             container.innerHTML = '<button class="server-filter-btn active" data-server="all">Все серверы</button>';
             
             servers.forEach(server => {
@@ -2421,6 +2809,9 @@
         function initImageUpload() {
             const uploadArea = document.getElementById('imageUploadArea');
             const fileInput = document.getElementById('imageInput');
+            
+            if (!uploadArea || !fileInput) return;
+            
             const preview = document.getElementById('imagePreview');
             
             // Клик по области загрузки
@@ -2455,6 +2846,7 @@
         
         function handleImageFiles(files) {
             const preview = document.getElementById('imagePreview');
+            if (!preview) return;
             
             Array.from(files).forEach(file => {
                 if (!file.type.startsWith('image/')) {
@@ -2491,6 +2883,8 @@
         
         function updateImagePreview() {
             const preview = document.getElementById('imagePreview');
+            if (!preview) return;
+            
             preview.innerHTML = '';
             
             uploadedImages.forEach((imageData, index) => {
@@ -2518,19 +2912,25 @@
             });
             
             // Кнопка "Разместить" в навбаре
-            document.getElementById('createListingBtn').addEventListener('click', function() {
-                if (!currentUser) {
-                    showNotification('Войдите в систему, чтобы разместить объявление', 'error');
-                    showAuthModal();
-                    return;
-                }
-                switchPage('create');
-            });
+            const createListingBtn = document.getElementById('createListingBtn');
+            if (createListingBtn) {
+                createListingBtn.addEventListener('click', function() {
+                    if (!currentUser) {
+                        showNotification('Войдите в систему, чтобы разместить объявление', 'error');
+                        showAuthModal();
+                        return;
+                    }
+                    switchPage('create');
+                });
+            }
             
             // Логотип
-            document.getElementById('goToHome').addEventListener('click', function() {
-                switchPage('home');
-            });
+            const goToHome = document.getElementById('goToHome');
+            if (goToHome) {
+                goToHome.addEventListener('click', function() {
+                    switchPage('home');
+                });
+            }
             
             // Категории в футере
             document.querySelectorAll('.footer-links a[data-category]').forEach(link => {
@@ -2545,6 +2945,15 @@
                 });
             });
             
+            // Ссылки на правила в футере
+            document.querySelectorAll('.footer-links a[data-page]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.getAttribute('data-page');
+                    switchPage(page);
+                });
+            });
+            
             // Закрытие модалок
             document.querySelectorAll('.modal').forEach(modal => {
                 modal.addEventListener('click', function(e) {
@@ -2553,9 +2962,6 @@
                     }
                 });
             });
-            
-            // Переключатель темы
-            initTheme();
         }
         
         function switchPage(page) {
@@ -2565,7 +2971,10 @@
             });
             
             // Показываем выбранную страницу
-            document.getElementById(page + 'Page').classList.add('active');
+            const pageElement = document.getElementById(page + 'Page');
+            if (pageElement) {
+                pageElement.classList.add('active');
+            }
             
             // Обновляем навигацию
             document.querySelectorAll('.nav-link').forEach(link => {
@@ -2580,20 +2989,25 @@
             
             if (page === 'home') {
                 loadFeaturedListings();
-                updateCategoryCounts();
             } else if (page === 'listings') {
                 loadAllListings();
             } else if (page === 'messages') {
                 loadConversations();
             } else if (page === 'favorites') {
                 loadFavorites();
+            } else if (page === 'rules') {
+                // Правила уже загружены в HTML
             } else if (page === 'admin') {
                 loadAdminPanel();
+            } else if (page === 'listingDetails') {
+                loadListingDetails();
+            } else if (page === 'profile') {
+                loadProfilePage();
             }
         }
         
         // ============================================
-        // АВТОРИЗАЦИЯ И РЕГИСТРАЦИЯ - ИСПРАВЛЕННАЯ
+        // АВТОРИЗАЦИЯ И РЕГИСТРАЦИЯ
         // ============================================
         
         function initForms() {
@@ -2612,91 +3026,36 @@
                     document.querySelectorAll('.auth-form').forEach(form => {
                         form.classList.remove('active');
                     });
-                    document.getElementById(tabId + 'Form').classList.add('active');
+                    const form = document.getElementById(tabId + 'Form');
+                    if (form) {
+                        form.classList.add('active');
+                    }
                 });
             });
             
             // Функция показа модалки авторизации
             window.showAuthModal = function() {
-                document.getElementById('authModal').classList.add('active');
+                const authModal = document.getElementById('authModal');
+                if (authModal) {
+                    authModal.classList.add('active');
+                }
             };
             
             // Форма входа
-            document.getElementById('loginForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const username = document.getElementById('loginUsername').value.trim();
-                const password = document.getElementById('loginPassword').value;
-                
-                if (!username || !password) {
-                    showNotification('Заполните все поля', 'error');
-                    return;
-                }
-                
-                try {
-                    // Ищем пользователя в Supabase
-                    const { data, error } = await supabase
-                        .from('users')
-                        .select('*')
-                        .eq('username', username)
-                        .eq('password', password)
-                        .single();
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
                     
-                    if (error) throw error;
+                    const username = document.getElementById('loginUsername').value.trim();
+                    const password = document.getElementById('loginPassword').value;
                     
-                    if (!data) {
-                        showNotification('Неверный логин или пароль', 'error');
+                    if (!username || !password) {
+                        showNotification('Заполните все поля', 'error');
                         return;
                     }
                     
-                    if (data.is_banned) {
-                        showNotification('Ваш аккаунт заблокирован', 'error');
-                        return;
-                    }
-                    
-                    // Обновляем статус пользователя
-                    const { error: updateError } = await supabase
-                        .from('users')
-                        .update({
-                            last_login: new Date().toISOString(),
-                            is_online: true
-                        })
-                        .eq('id', data.id);
-                    
-                    if (updateError) throw updateError;
-                    
-                    // Сохраняем текущего пользователя
-                    currentUser = {
-                        id: data.id,
-                        username: data.username,
-                        roles: data.roles,
-                        servers: data.servers,
-                        registrationDate: data.registration_date,
-                        listingsCount: data.listings_count,
-                        rating: data.rating,
-                        isOnline: true,
-                        isBanned: data.is_banned
-                    };
-                    
-                    localStorage.setItem('beymarket_user', JSON.stringify(currentUser));
-                    
-                    // Обновляем UI
-                    updateUIForAuth(true);
-                    
-                    // Скрываем заставку и показываем контент
-                    showMainContent();
-                    
-                    // Закрываем модалку
-                    document.getElementById('authModal').classList.remove('active');
-                    
-                    // Сбрасываем форму
-                    this.reset();
-                    
-                    showNotification(`Добро пожаловать, ${username}!`, 'success');
-                    
-                } catch (error) {
-                    console.error('Ошибка входа:', error);
-                    // Fallback на localStorage
+                    // Ищем пользователя
                     const user = users.find(u => u.username === username && u.password === password);
                     
                     if (!user) {
@@ -2709,6 +3068,11 @@
                         return;
                     }
                     
+                    // Обновляем статус пользователя
+                    user.lastLogin = new Date().toISOString();
+                    user.isOnline = true;
+                    localStorage.setItem('beymarket_users', JSON.stringify(users));
+                    
                     // Сохраняем текущего пользователя
                     currentUser = {
                         id: user.id,
@@ -2717,114 +3081,9 @@
                         servers: user.servers,
                         registrationDate: user.registrationDate,
                         listingsCount: user.listingsCount,
-                        rating: user.rating,
-                        isOnline: true,
-                        isBanned: user.isBanned
-                    };
-                    
-                    localStorage.setItem('beymarket_user', JSON.stringify(currentUser));
-                    
-                    // Обновляем UI
-                    updateUIForAuth(true);
-                    
-                    // Скрываем заставку и показываем контент
-                    showMainContent();
-                    
-                    // Закрываем модалку
-                    document.getElementById('authModal').classList.remove('active');
-                    
-                    // Сбрасываем форму
-                    this.reset();
-                    
-                    showNotification(`Добро пожаловать, ${username}!`, 'success');
-                }
-            });
-            
-            // Форма регистрации
-            document.getElementById('registerForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const username = document.getElementById('registerUsername').value.trim();
-                const password = document.getElementById('registerPassword').value;
-                const confirmPassword = document.getElementById('registerConfirmPassword').value;
-                
-                if (!username || !password || !confirmPassword) {
-                    showNotification('Заполните все поля', 'error');
-                    return;
-                }
-                
-                if (password.length < 6) {
-                    showNotification('Пароль должен содержать минимум 6 символов', 'error');
-                    return;
-                }
-                
-                if (password !== confirmPassword) {
-                    showNotification('Пароли не совпадают', 'error');
-                    return;
-                }
-                
-                // Собираем выбранные серверы
-                const selectedServers = [];
-                document.querySelectorAll('#serverSelection input:checked').forEach(checkbox => {
-                    selectedServers.push(checkbox.value);
-                });
-                
-                if (selectedServers.length === 0) {
-                    showNotification('Выберите хотя бы один сервер', 'error');
-                    return;
-                }
-                
-                try {
-                    // Проверяем, не занят ли логин
-                    const { data: existingUser } = await supabase
-                        .from('users')
-                        .select('id')
-                        .eq('username', username)
-                        .single();
-                    
-                    if (existingUser) {
-                        showNotification('Этот логин уже занят', 'error');
-                        return;
-                    }
-                    
-                    // Создаем нового пользователя
-                    const newUser = {
-                        id: 'user-' + Date.now().toString(),
-                        username: username,
-                        password: password,
-                        servers: selectedServers,
-                        roles: [ROLES.USER],
-                        registration_date: new Date().toISOString(),
-                        last_login: new Date().toISOString(),
-                        is_online: true,
-                        is_banned: false,
-                        avatar: null,
-                        listings_count: 0,
-                        rating: 0,
-                        email: null,
-                        created_at: new Date().toISOString()
-                    };
-                    
-                    // Сохраняем в Supabase
-                    const { error } = await supabase
-                        .from('users')
-                        .insert([newUser]);
-                    
-                    if (error) throw error;
-                    
-                    // Добавляем пользователя в локальный массив
-                    users.push(newUser);
-                    localStorage.setItem('beymarket_users', JSON.stringify(users));
-                    
-                    // Сохраняем текущего пользователя
-                    currentUser = {
-                        id: newUser.id,
-                        username: newUser.username,
-                        roles: newUser.roles,
-                        servers: newUser.servers,
-                        registrationDate: newUser.registration_date,
-                        listingsCount: 0,
-                        rating: 0,
+                        description: user.description,
+                        phone: user.phone,
+                        location: user.location,
                         isOnline: true,
                         isBanned: false
                     };
@@ -2834,8 +3093,11 @@
                     // Обновляем UI
                     updateUIForAuth(true);
                     
-                    // Скрываем заставку и показываем контент
-                    showMainContent();
+                    // Скрываем приветственное сообщение
+                    updateGuestWelcome();
+                    
+                    // Создаем чат с техподдержкой, если его нет
+                    createSupportChat();
                     
                     // Закрываем модалку
                     document.getElementById('authModal').classList.remove('active');
@@ -2843,20 +3105,49 @@
                     // Сбрасываем форму
                     this.reset();
                     
-                    // Сбрасываем выбор серверов
-                    document.querySelectorAll('#serverSelection .server-checkbox').forEach(cb => {
-                        cb.classList.remove('selected');
-                        cb.querySelector('input').checked = false;
-                    });
+                    showNotification(`Добро пожаловать, ${username}!`, 'success');
+                });
+            }
+            
+            // Форма регистрации
+            const registerForm = document.getElementById('registerForm');
+            if (registerForm) {
+                registerForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
                     
-                    showNotification('Регистрация успешна! Добро пожаловать в BeyMarket!', 'success');
+                    const username = document.getElementById('registerUsername').value.trim();
+                    const password = document.getElementById('registerPassword').value;
+                    const confirmPassword = document.getElementById('registerConfirmPassword').value;
                     
-                } catch (error) {
-                    console.error('Ошибка регистрации:', error);
+                    if (!username || !password || !confirmPassword) {
+                        showNotification('Заполните все поля', 'error');
+                        return;
+                    }
                     
-                    // Fallback на localStorage
+                    if (password.length < 6) {
+                        showNotification('Пароль должен содержать минимум 6 символов', 'error');
+                        return;
+                    }
+                    
+                    if (password !== confirmPassword) {
+                        showNotification('Пароли не совпадают', 'error');
+                        return;
+                    }
+                    
+                    // Проверяем, не занят ли логин
                     if (users.some(u => u.username === username)) {
                         showNotification('Этот логин уже занят', 'error');
+                        return;
+                    }
+                    
+                    // Собираем выбранные серверы
+                    const selectedServers = [];
+                    document.querySelectorAll('#serverSelection input:checked').forEach(checkbox => {
+                        selectedServers.push(checkbox.value);
+                    });
+                    
+                    if (selectedServers.length === 0) {
+                        showNotification('Выберите хотя бы один сервер', 'error');
                         return;
                     }
                     
@@ -2873,7 +3164,9 @@
                         isBanned: false,
                         avatar: null,
                         listingsCount: 0,
-                        rating: 0
+                        description: 'Новый пользователь BeyMarket',
+                        phone: null,
+                        location: null
                     };
                     
                     // Добавляем пользователя
@@ -2888,7 +3181,9 @@
                         servers: newUser.servers,
                         registrationDate: newUser.registrationDate,
                         listingsCount: 0,
-                        rating: 0,
+                        description: newUser.description,
+                        phone: newUser.phone,
+                        location: newUser.location,
                         isOnline: true,
                         isBanned: false
                     };
@@ -2898,8 +3193,11 @@
                     // Обновляем UI
                     updateUIForAuth(true);
                     
-                    // Скрываем заставку и показываем контент
-                    showMainContent();
+                    // Скрываем приветственное сообщение
+                    updateGuestWelcome();
+                    
+                    // Создаем чат с техподдержкой
+                    createSupportChat();
                     
                     // Закрываем модалку
                     document.getElementById('authModal').classList.remove('active');
@@ -2914,126 +3212,189 @@
                     });
                     
                     showNotification('Регистрация успешна! Добро пожаловать в BeyMarket!', 'success');
-                }
-            });
+                });
+            }
             
             // Форма создания объявления
-            document.getElementById('createListingForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                if (!currentUser) {
-                    showNotification('Войдите в систему, чтобы разместить объявление', 'error');
-                    showAuthModal();
-                    return;
-                }
-                
-                const type = document.getElementById('listingType').value;
-                const category = document.getElementById('listingCategory').value;
-                const title = document.getElementById('listingTitle').value;
-                const description = document.getElementById('listingDescription').value;
-                const price = parseInt(document.getElementById('listingPrice').value);
-                const server = document.getElementById('listingServer').value;
-                
-                if (!type || !category || !title || !description || !price || !server) {
-                    showNotification('Заполните все обязательные поля', 'error');
-                    return;
-                }
-                
-                if (price < 0) {
-                    showNotification('Цена не может быть отрицательной', 'error');
-                    return;
-                }
-                
-                if (price > 999999999) {
-                    showNotification('Максимальная цена - 999.999.999 ₽', 'error');
-                    return;
-                }
-                
-                // Валидация номера для категории "Номерные знаки"
-                if (category === 'plate') {
-                    const plateNumber = document.getElementById('plateNumber').value;
-                    const plateFormat = /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}(77|78|63)$/;
+            const createListingForm = document.getElementById('createListingForm');
+            if (createListingForm) {
+                createListingForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
                     
-                    if (!plateFormat.test(plateNumber)) {
-                        showNotification('Неверный формат номерного знака. Пример: А123АА77', 'error');
+                    if (!currentUser) {
+                        showNotification('Войдите в систему, чтобы разместить объявление', 'error');
+                        showAuthModal();
                         return;
                     }
-                }
-                
-                // Определяем статус модерации
-                const moderationStatus = hasModerationRights() ? 'approved' : 'pending';
-                
-                // Создаем новое объявление
-                const newListing = {
-                    id: Date.now().toString(),
-                    user_id: currentUser.id,
-                    user_name: currentUser.username,
-                    type: type,
-                    category: category,
-                    title: title,
-                    description: description,
-                    price: price,
-                    server: server,
-                    plate_number: category === 'plate' ? document.getElementById('plateNumber').value : null,
-                    images: uploadedImages,
-                    created_at: new Date().toISOString(),
-                    is_active: true,
-                    views: 0,
-                    moderation_status: moderationStatus,
-                    moderated_by: null,
-                    moderated_at: null,
-                    moderation_reason: null
-                };
-                
-                try {
-                    // Сохраняем в Supabase
-                    const { error } = await supabase
-                        .from('listings')
-                        .insert([newListing]);
                     
-                    if (error) throw error;
+                    const type = document.getElementById('listingType').value;
+                    const category = document.getElementById('listingCategory').value;
+                    const title = document.getElementById('listingTitle').value;
+                    const description = document.getElementById('listingDescription').value;
+                    const price = parseInt(document.getElementById('listingPrice').value);
+                    const server = document.getElementById('listingServer').value;
                     
-                } catch (error) {
-                    console.error('Ошибка сохранения объявления в Supabase:', error);
-                    // Продолжаем с локальным сохранением
-                }
-                
-                // Добавляем в локальный список объявлений
-                listings.unshift(newListing);
-                
-                // Обновляем счетчик объявлений пользователя
-                updateUserListingsCount(currentUser.id);
-                
-                // Сохраняем в localStorage
-                localStorage.setItem('beymarket_listings', JSON.stringify(listings));
-                
-                // Обновляем счетчики категорий
-                updateCategoryCounts();
-                
-                // Сбрасываем форму
-                this.reset();
-                uploadedImages = [];
-                updateImagePreview();
-                document.getElementById('plateNumberSection').style.display = 'none';
-                document.getElementById('pricePreview').textContent = '';
-                
-                showNotification('Объявление успешно размещено! ' + 
-                    (moderationStatus === 'approved' ? 'Одобрено автоматически.' : 'Отправлено на модерацию.'), 
-                    'success');
-                
-                // Переходим на страницу объявлений
-                switchPage('listings');
-            });
+                    if (!type || !category || !title || !description || !price || !server) {
+                        showNotification('Заполните все обязательные поля', 'error');
+                        return;
+                    }
+                    
+                    if (price < 0) {
+                        showNotification('Цена не может быть отрицательной', 'error');
+                        return;
+                    }
+                    
+                    if (price > 999999999) {
+                        showNotification('Максимальная цена - 999.999.999 ₽', 'error');
+                        return;
+                    }
+                    
+                    // Валидация номера для категории "Номерные знаки"
+                    if (category === 'plate') {
+                        const plateNumber = document.getElementById('plateNumber').value;
+                        const plateFormat = /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}(77|78|63)$/;
+                        
+                        if (!plateFormat.test(plateNumber)) {
+                            showNotification('Неверный формат номерного знака. Пример: А123АА77', 'error');
+                            return;
+                        }
+                    }
+                    
+                    // Определяем статус модерации
+                    const moderationStatus = hasModerationRights() ? 'approved' : 'pending';
+                    
+                    // Создаем новое объявление
+                    const newListing = {
+                        id: Date.now().toString(),
+                        user_id: currentUser.id,
+                        user_name: currentUser.username,
+                        type: type,
+                        category: category,
+                        title: title,
+                        description: description,
+                        price: price,
+                        server: server,
+                        plate_number: category === 'plate' ? document.getElementById('plateNumber').value : null,
+                        images: uploadedImages,
+                        created_at: new Date().toISOString(),
+                        is_active: true,
+                        views: 0,
+                        moderation_status: moderationStatus,
+                        moderated_by: null,
+                        moderated_at: null,
+                        moderation_reason: null,
+                        is_favorite: false
+                    };
+                    
+                    // Добавляем в список объявлений
+                    listings.unshift(newListing);
+                    
+                    // Обновляем счетчик объявлений пользователя
+                    updateUserListingsCount(currentUser.id);
+                    
+                    // Сохраняем в localStorage
+                    localStorage.setItem('beymarket_listings', JSON.stringify(listings));
+                    
+                    // Обновляем счетчики категорий
+                    updateCategoryCounts();
+                    
+                    // Сбрасываем форму
+                    this.reset();
+                    uploadedImages = [];
+                    updateImagePreview();
+                    const plateNumberSection = document.getElementById('plateNumberSection');
+                    if (plateNumberSection) {
+                        plateNumberSection.style.display = 'none';
+                    }
+                    const pricePreview = document.getElementById('pricePreview');
+                    if (pricePreview) {
+                        pricePreview.textContent = '';
+                    }
+                    
+                    showNotification('Объявление успешно размещено! ' + 
+                        (moderationStatus === 'approved' ? 'Одобрено автоматически.' : 'Отправлено на модерацию.'), 
+                        'success');
+                    
+                    // Переходим на страницу объявлений
+                    switchPage('listings');
+                });
+            }
             
             // Показ/скрытие поля для номера в зависимости от категории
-            document.getElementById('listingCategory').addEventListener('change', function() {
-                const plateSection = document.getElementById('plateNumberSection');
-                if (this.value === 'plate') {
-                    plateSection.style.display = 'block';
-                } else {
-                    plateSection.style.display = 'none';
-                }
-            });
+            const listingCategory = document.getElementById('listingCategory');
+            if (listingCategory) {
+                listingCategory.addEventListener('change', function() {
+                    const plateSection = document.getElementById('plateNumberSection');
+                    if (plateSection) {
+                        if (this.value === 'plate') {
+                            plateSection.style.display = 'block';
+                        } else {
+                            plateSection.style.display = 'none';
+                        }
+                    }
+                });
+            }
+            
+            // Форма смены пароля
+            const changePasswordForm = document.getElementById('changePasswordForm');
+            if (changePasswordForm) {
+                changePasswordForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    if (!currentUser) {
+                        showNotification('Войдите в систему', 'error');
+                        return;
+                    }
+                    
+                    const currentPassword = document.getElementById('currentPassword').value;
+                    const newPassword = document.getElementById('newPassword').value;
+                    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+                    
+                    if (!currentPassword || !newPassword || !confirmNewPassword) {
+                        showNotification('Заполните все поля', 'error');
+                        return;
+                    }
+                    
+                    // Находим пользователя в базе
+                    const user = users.find(u => u.id === currentUser.id);
+                    if (!user) {
+                        showNotification('Пользователь не найден', 'error');
+                        return;
+                    }
+                    
+                    // Проверяем текущий пароль
+                    if (user.password !== currentPassword) {
+                        showNotification('Текущий пароль неверен', 'error');
+                        return;
+                    }
+                    
+                    if (newPassword.length < 6) {
+                        showNotification('Новый пароль должен содержать минимум 6 символов', 'error');
+                        return;
+                    }
+                    
+                    if (newPassword !== confirmNewPassword) {
+                        showNotification('Новые пароли не совпадают', 'error');
+                        return;
+                    }
+                    
+                    // Обновляем пароль
+                    user.password = newPassword;
+                    currentUser.password = newPassword;
+                    
+                    // Сохраняем изменения
+                    localStorage.setItem('beymarket_users', JSON.stringify(users));
+                    localStorage.setItem('beymarket_user', JSON.stringify(currentUser));
+                    
+                    // Закрываем модалку
+                    closeModal();
+                    
+                    // Сбрасываем форму
+                    this.reset();
+                    
+                    showNotification('Пароль успешно изменен', 'success');
+                });
+            }
         }
         
         // ============================================
@@ -3059,43 +3420,53 @@
             const pendingTab = document.getElementById('pendingTab');
             
             if (isAuthenticated && currentUser) {
-                userName.textContent = currentUser.username;
-                userAvatar.textContent = currentUser.username.charAt(0).toUpperCase();
+                if (userName) userName.textContent = currentUser.username;
+                if (userAvatar) userAvatar.textContent = currentUser.username.charAt(0).toUpperCase();
                 
                 // Показываем админ бейдж
-                if (hasAdminRights() || hasModerationRights()) {
-                    adminBadge.style.display = 'flex';
-                } else {
-                    adminBadge.style.display = 'none';
+                if (adminBadge) {
+                    if (hasAdminRights() || hasModerationRights()) {
+                        adminBadge.style.display = 'flex';
+                    } else {
+                        adminBadge.style.display = 'none';
+                    }
                 }
                 
                 // Показываем админ вкладку
-                if (hasAdminRights()) {
-                    adminTab.style.display = 'block';
-                } else {
-                    adminTab.style.display = 'none';
+                if (adminTab) {
+                    if (hasAdminRights()) {
+                        adminTab.style.display = 'block';
+                    } else {
+                        adminTab.style.display = 'none';
+                    }
                 }
                 
                 // Показываем вкладку модерации
-                if (hasModerationRights()) {
-                    pendingTab.style.display = 'block';
-                } else {
-                    pendingTab.style.display = 'none';
+                if (pendingTab) {
+                    if (hasModerationRights()) {
+                        pendingTab.style.display = 'block';
+                    } else {
+                        pendingTab.style.display = 'none';
+                    }
                 }
                 
-                userInfo.onclick = function() {
-                    openProfile(currentUser.id);
-                };
+                if (userInfo) {
+                    userInfo.onclick = function() {
+                        openProfileModal();
+                    };
+                }
             } else {
-                userName.textContent = 'Войти';
-                userAvatar.textContent = '?';
-                adminBadge.style.display = 'none';
-                adminTab.style.display = 'none';
-                pendingTab.style.display = 'none';
+                if (userName) userName.textContent = 'Войти';
+                if (userAvatar) userAvatar.textContent = '?';
+                if (adminBadge) adminBadge.style.display = 'none';
+                if (adminTab) adminTab.style.display = 'none';
+                if (pendingTab) pendingTab.style.display = 'none';
                 
-                userInfo.onclick = function() {
-                    showAuthModal();
-                };
+                if (userInfo) {
+                    userInfo.onclick = function() {
+                        showAuthModal();
+                    };
+                }
             }
         }
         
@@ -3165,12 +3536,16 @@
                     listing.moderation_status === 'approved'
                 ).length;
                 
-                document.getElementById(category + 'Count').textContent = `${count} объявлений`;
+                const element = document.getElementById(category + 'Count');
+                if (element) {
+                    element.textContent = `${count} объявлений`;
+                }
             });
         }
         
         function loadFeaturedListings() {
             const container = document.getElementById('featuredListings');
+            if (!container) return;
             
             // Фильтрация
             let filteredListings = listings.filter(listing => 
@@ -3194,6 +3569,7 @@
         
         function loadAllListings() {
             const container = document.getElementById('allListings');
+            if (!container) return;
             
             // Фильтрация
             let filteredListings = listings.filter(listing => {
@@ -3222,6 +3598,7 @@
         
         function loadFavorites() {
             const container = document.getElementById('favoritesListings');
+            if (!container) return;
             
             if (!currentUser) {
                 container.innerHTML = `
@@ -3256,6 +3633,8 @@
         }
         
         function renderListings(listingsArray, container, showModerationBadge = false) {
+            if (!container) return;
+            
             if (!listingsArray || listingsArray.length === 0) {
                 const noItemsText = showModerationBadge ? 
                     'Нет объявлений на модерации' : 
@@ -3312,7 +3691,7 @@
                 }
                 
                 return `
-                    <div class="listing-card" onclick="openListingModal('${listing.id}')">
+                    <div class="listing-card" onclick="openListingDetails('${listing.id}')">
                         <div class="listing-image">
                             ${firstImage ? 
                                 `<img src="${firstImage}" alt="${listing.title}" onclick="event.stopPropagation(); openFullscreenImage('${firstImage}')">` : 
@@ -3351,11 +3730,835 @@
             }).join('');
         }
         
+        window.toggleFavorite = function(listingId) {
+            if (!currentUser) {
+                showNotification('Войдите в систему, чтобы добавлять в избранное', 'error');
+                return;
+            }
+            
+            const index = favorites.indexOf(listingId);
+            if (index === -1) {
+                favorites.push(listingId);
+                showNotification('Добавлено в избранное', 'success');
+            } else {
+                favorites.splice(index, 1);
+                showNotification('Удалено из избранного', 'info');
+            }
+            
+            localStorage.setItem('beymarket_favorites', JSON.stringify(favorites));
+            
+            // Обновляем отображение, если находимся на странице избранного
+            if (currentPage === 'favorites') {
+                loadFavorites();
+            }
+        };
+        
+        // ============================================
+        // ПРОСМОТР ОБЪЯВЛЕНИЯ - УЛУЧШЕННЫЙ ДИЗАЙН
+        // ============================================
+        
+        window.openListingDetails = function(listingId) {
+            currentListingId = listingId;
+            switchPage('listingDetails');
+        };
+        
+        function loadListingDetails() {
+            const container = document.querySelector('.listing-details');
+            if (!container) return;
+            
+            const listing = listings.find(l => l.id === currentListingId);
+            if (!listing) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-exclamation-circle"></i></div>
+                        <div style="font-size: 18px; margin-bottom: var(--space-sm);">Объявление не найдено</div>
+                        <button class="btn btn-primary" onclick="switchPage('listings')">Вернуться к объявлениям</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Увеличиваем счетчик просмотров
+            listing.views = (listing.views || 0) + 1;
+            localStorage.setItem('beymarket_listings', JSON.stringify(listings));
+            
+            // Форматируем цену
+            const formattedPrice = formatPrice(listing.price);
+            
+            // Иконка для категории
+            const categoryIcons = {
+                plate: 'fa-car',
+                clothing: 'fa-tshirt',
+                car: 'fa-car-side',
+                business: 'fa-briefcase',
+                property: 'fa-home',
+                accessory: 'fa-gem'
+            };
+            
+            const categoryIcon = categoryIcons[listing.category] || 'fa-tag';
+            
+            // Определяем, есть ли в избранном
+            const isFavorite = currentUser && favorites.includes(listing.id);
+            const favoriteIcon = isFavorite ? 'fas fa-heart' : 'far fa-heart';
+            const favoriteText = isFavorite ? 'В избранном' : 'В избранное';
+            
+            // Кнопки действий
+            let actionButtons = '';
+            if (currentUser) {
+                if (listing.user_id === currentUser.id || hasAdminRights()) {
+                    actionButtons = `
+                        <button class="btn btn-warning" onclick="editListing('${listing.id}')">
+                            <i class="fas fa-edit"></i> Редактировать
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteListing('${listing.id}')">
+                            <i class="fas fa-trash"></i> Удалить
+                        </button>
+                    `;
+                }
+                
+                if (listing.user_id !== currentUser.id) {
+                    actionButtons += `
+                        <button class="btn btn-primary" onclick="sendMessageToUser('${listing.user_id}')">
+                            <i class="fas fa-comment"></i> Написать продавцу
+                        </button>
+                    `;
+                }
+            }
+            
+            // Изображения
+            let imagesHtml = '';
+            if (listing.images && listing.images.length > 0) {
+                imagesHtml = listing.images.map(image => `
+                    <div class="listing-details-image" onclick="openFullscreenImage('${image}')">
+                        <img src="${image}" alt="Фото объявления">
+                    </div>
+                `).join('');
+            } else {
+                imagesHtml = `
+                    <div class="listing-details-image">
+                        <i class="fas ${categoryIcon}" style="font-size: 64px; color: var(--text-tertiary);"></i>
+                    </div>
+                `;
+            }
+            
+            // Информация о продавце
+            const seller = users.find(u => u.id === listing.user_id);
+            const sellerStatus = seller ? (seller.isOnline ? '🟢 Онлайн' : '⚫ Не в сети') : 'Неизвестно';
+            
+            container.innerHTML = `
+                <div class="listing-details-header">
+                    <div>
+                        <h1 class="listing-details-title">${listing.title}</h1>
+                        <div class="listing-details-price">${formattedPrice}</div>
+                        <div class="listing-details-meta">
+                            <span class="listing-details-meta-item">
+                                <i class="far fa-user"></i> ${listing.user_name}
+                            </span>
+                            <span class="listing-details-meta-item">
+                                <i class="fas fa-server"></i> Сервер ${listing.server}
+                            </span>
+                            <span class="listing-details-meta-item">
+                                <i class="far fa-eye"></i> ${listing.views} просмотров
+                            </span>
+                            <span class="listing-details-meta-item">
+                                <i class="far fa-calendar"></i> ${formatDate(listing.created_at)}
+                            </span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: var(--space-sm); flex-direction: column;">
+                        <button class="btn ${isFavorite ? 'btn-danger' : 'btn-secondary'}" onclick="toggleFavorite('${listing.id}')">
+                            <i class="${favoriteIcon}"></i> ${favoriteText}
+                        </button>
+                        ${actionButtons}
+                    </div>
+                </div>
+                
+                <div class="listing-details-images">
+                    ${imagesHtml}
+                </div>
+                
+                <div class="listing-details-info">
+                    <div class="listing-details-section">
+                        <h2 class="listing-details-section-title"><i class="fas fa-align-left"></i> Описание</h2>
+                        <p style="line-height: 1.6; color: var(--text-primary); font-size: 16px;">${listing.description}</p>
+                    </div>
+                    
+                    ${listing.plate_number ? `
+                        <div class="listing-details-section">
+                            <h2 class="listing-details-section-title"><i class="fas fa-car"></i> Детали номерного знака</h2>
+                            <div style="background-color: var(--bg-tertiary); padding: var(--space-md); border-radius: var(--radius-medium);">
+                                <p style="font-size: 24px; font-weight: 700; color: var(--text-primary); text-align: center;">
+                                    ${listing.plate_number}
+                                </p>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="listing-details-section">
+                        <h2 class="listing-details-section-title"><i class="fas fa-user-tie"></i> Продавец</h2>
+                        <div class="seller-info">
+                            <div class="seller-avatar">
+                                ${listing.user_name.charAt(0).toUpperCase()}
+                            </div>
+                            <div class="seller-details">
+                                <div class="seller-name">${listing.user_name}</div>
+                                <div class="seller-status">${sellerStatus}</div>
+                                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-sm);">
+                                    <button class="btn btn-secondary btn-sm" onclick="viewUserProfile('${listing.user_id}')">
+                                        <i class="far fa-user"></i> Профиль
+                                    </button>
+                                    ${currentUser && listing.user_id !== currentUser.id ? `
+                                        <button class="btn btn-primary btn-sm" onclick="sendMessageToUser('${listing.user_id}')">
+                                            <i class="fas fa-comment"></i> Написать
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-xl);">
+                    <button class="btn btn-secondary" onclick="switchPage('listings')">
+                        <i class="fas fa-arrow-left"></i> Назад к объявлениям
+                    </button>
+                </div>
+            `;
+        }
+        
+        window.viewUserProfile = function(userId) {
+            currentProfileUserId = userId;
+            switchPage('profile');
+        };
+        
+        // ============================================
+        // СИСТЕМА СООБЩЕНИЙ
+        // ============================================
+        
+        function createSupportChat() {
+            if (!currentUser) return;
+            
+            // Проверяем, есть ли уже чат с техподдержкой
+            const existingChat = conversations.find(conv => 
+                (conv.user1_id === currentUser.id && conv.user2_id === supportUserId) ||
+                (conv.user1_id === supportUserId && conv.user2_id === currentUser.id)
+            );
+            
+            if (!existingChat) {
+                // Создаем новый чат с техподдержкой
+                const newConversation = {
+                    id: 'conv-' + Date.now().toString(),
+                    user1_id: currentUser.id,
+                    user1_name: currentUser.username,
+                    user2_id: supportUserId,
+                    user2_name: 'Техподдержка BeyMarket',
+                    messages: [
+                        {
+                            id: 'msg-' + Date.now().toString(),
+                            sender_id: supportUserId,
+                            sender_name: 'Техподдержка BeyMarket',
+                            content: 'Добро пожаловать в BeyMarket! Я ваш помощник из технической поддержки. Чем могу помочь?',
+                            timestamp: new Date().toISOString(),
+                            read: false
+                        }
+                    ],
+                    last_message: 'Добро пожаловать в BeyMarket! Я ваш помощник из технической поддержки. Чем могу помочь?',
+                    last_message_time: new Date().toISOString(),
+                    unread_count: 1
+                };
+                
+                conversations.push(newConversation);
+                localStorage.setItem('beymarket_conversations', JSON.stringify(conversations));
+            }
+        }
+        
+        window.openSupportChat = function() {
+            if (!currentUser) {
+                showNotification('Войдите в систему, чтобы написать в поддержку', 'error');
+                showAuthModal();
+                return;
+            }
+            
+            switchPage('messages');
+            
+            // Находим чат с техподдержкой
+            const supportChat = conversations.find(conv => 
+                (conv.user1_id === currentUser.id && conv.user2_id === supportUserId) ||
+                (conv.user1_id === supportUserId && conv.user2_id === currentUser.id)
+            );
+            
+            if (supportChat) {
+                setTimeout(() => {
+                    openConversation(supportChat.id);
+                }, 100);
+            }
+        };
+        
+        function loadConversations() {
+            if (!currentUser) {
+                const messagesPage = document.getElementById('messagesPage');
+                if (messagesPage) {
+                    messagesPage.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="far fa-comments"></i></div>
+                            <div style="font-size: 18px; margin-bottom: var(--space-sm);">Войдите в систему</div>
+                            <div style="color: var(--text-secondary); margin-bottom: var(--space-lg);">Чтобы просмотреть сообщения, необходимо войти в систему</div>
+                            <button class="btn btn-primary" onclick="showAuthModal()">Войти</button>
+                        </div>
+                    `;
+                }
+                return;
+            }
+            
+            // Фильтруем диалоги текущего пользователя
+            const userConversations = conversations.filter(conv => 
+                conv.user1_id === currentUser.id || conv.user2_id === currentUser.id
+            );
+            
+            // Сортируем по времени последнего сообщения
+            userConversations.sort((a, b) => new Date(b.last_message_time) - new Date(a.last_message_time));
+            
+            const conversationsList = document.getElementById('conversationsList');
+            if (!conversationsList) return;
+            
+            if (userConversations.length === 0) {
+                conversationsList.innerHTML = `
+                    <div class="empty-state" style="padding: var(--space-lg);">
+                        <div class="empty-state-icon"><i class="far fa-comments"></i></div>
+                        <div style="font-size: 16px; margin-bottom: var(--space-sm);">Нет диалогов</div>
+                        <div style="color: var(--text-secondary);">Начните общение с продавцом или напишите в поддержку</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            conversationsList.innerHTML = userConversations.map(conv => {
+                const otherUserId = conv.user1_id === currentUser.id ? conv.user2_id : conv.user1_id;
+                const otherUserName = conv.user1_id === currentUser.id ? conv.user2_name : conv.user1_name;
+                const otherUser = users.find(u => u.id === otherUserId);
+                const isActive = conv.id === currentConversationId;
+                
+                return `
+                    <div class="conversation-item ${isActive ? 'active' : ''}" onclick="openConversation('${conv.id}')">
+                        <div class="conversation-avatar">
+                            ${otherUserName.charAt(0).toUpperCase()}
+                        </div>
+                        <div class="conversation-info">
+                            <div class="conversation-name">${otherUserName}</div>
+                            <div class="conversation-preview">${conv.last_message}</div>
+                        </div>
+                        <div class="conversation-time">${formatTime(conv.last_message_time)}</div>
+                        ${conv.unread_count > 0 ? `
+                            <div style="background-color: var(--accent-blue); color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">
+                                ${conv.unread_count}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function openConversation(conversationId) {
+            currentConversationId = conversationId;
+            const conversation = conversations.find(c => c.id === conversationId);
+            
+            if (!conversation) return;
+            
+            const otherUserId = conversation.user1_id === currentUser.id ? conversation.user2_id : conversation.user1_id;
+            const otherUserName = conversation.user1_id === currentUser.id ? conversation.user2_name : conversation.user1_name;
+            const otherUser = users.find(u => u.id === otherUserId);
+            
+            // Обновляем заголовок чата
+            document.getElementById('chatAvatar').textContent = otherUserName.charAt(0).toUpperCase();
+            document.getElementById('chatUserName').textContent = otherUserName;
+            document.getElementById('chatUserStatus').textContent = otherUser ? (otherUser.isOnline ? '🟢 Онлайн' : '⚫ Не в сети') : '';
+            document.getElementById('chatActions').style.display = 'block';
+            document.getElementById('chatInputContainer').style.display = 'flex';
+            
+            // Загружаем сообщения
+            loadMessages(conversationId);
+            
+            // Помечаем сообщения как прочитанные
+            markMessagesAsRead(conversationId);
+            
+            // Обновляем список диалогов
+            loadConversations();
+        }
+        
+        function loadMessages(conversationId) {
+            const conversation = conversations.find(c => c.id === conversationId);
+            if (!conversation) return;
+            
+            const chatMessages = document.getElementById('chatMessages');
+            if (!chatMessages) return;
+            
+            if (!conversation.messages || conversation.messages.length === 0) {
+                chatMessages.innerHTML = `
+                    <div class="empty-state" style="margin: auto;">
+                        <div class="empty-state-icon"><i class="far fa-comments"></i></div>
+                        <div style="font-size: 18px; margin-bottom: var(--space-sm);">Нет сообщений</div>
+                        <div style="color: var(--text-secondary);">Начните общение первым</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Сортируем сообщения по времени
+            const sortedMessages = [...conversation.messages].sort((a, b) => 
+                new Date(a.timestamp) - new Date(b.timestamp)
+            );
+            
+            chatMessages.innerHTML = sortedMessages.map(msg => {
+                const isOutgoing = msg.sender_id === currentUser.id;
+                const messageClass = isOutgoing ? 'outgoing' : 'incoming';
+                
+                return `
+                    <div class="message ${messageClass}">
+                        <div class="message-content">${msg.content}</div>
+                        <div class="message-time">${formatTime(msg.timestamp)}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Прокручиваем вниз
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Настраиваем отправку сообщений
+            setupMessageSending(conversationId);
+        }
+        
+        function setupMessageSending(conversationId) {
+            const chatInput = document.getElementById('chatInput');
+            const sendButton = document.getElementById('sendMessageBtn');
+            
+            if (!chatInput || !sendButton) return;
+            
+            // Очищаем предыдущие обработчики
+            chatInput.onkeydown = null;
+            sendButton.onclick = null;
+            
+            // Отправка по Enter
+            chatInput.onkeydown = function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage(conversationId);
+                }
+            };
+            
+            // Отправка по клику на кнопку
+            sendButton.onclick = function() {
+                sendMessage(conversationId);
+            };
+            
+            chatInput.focus();
+        }
+        
+        function sendMessage(conversationId) {
+            const chatInput = document.getElementById('chatInput');
+            const messageText = chatInput.value.trim();
+            
+            if (!messageText) return;
+            
+            const conversation = conversations.find(c => c.id === conversationId);
+            if (!conversation) return;
+            
+            // Создаем новое сообщение
+            const newMessage = {
+                id: 'msg-' + Date.now().toString(),
+                sender_id: currentUser.id,
+                sender_name: currentUser.username,
+                content: messageText,
+                timestamp: new Date().toISOString(),
+                read: false
+            };
+            
+            // Добавляем сообщение в диалог
+            conversation.messages.push(newMessage);
+            conversation.last_message = messageText;
+            conversation.last_message_time = new Date().toISOString();
+            
+            // Если отправитель не текущий пользователь (для групповых чатов)
+            const otherUserId = conversation.user1_id === currentUser.id ? conversation.user2_id : conversation.user1_id;
+            conversation.unread_count = conversation.user1_id === otherUserId ? 
+                (conversation.unread_count || 0) + 1 : 0;
+            
+            // Сохраняем изменения
+            localStorage.setItem('beymarket_conversations', JSON.stringify(conversations));
+            
+            // Очищаем поле ввода
+            chatInput.value = '';
+            
+            // Обновляем отображение сообщений
+            loadMessages(conversationId);
+            
+            // Обновляем список диалогов
+            loadConversations();
+            
+            // Автоответ от техподдержки
+            if (otherUserId === supportUserId) {
+                setTimeout(() => {
+                    sendAutoReply(conversationId);
+                }, 1000);
+            }
+        }
+        
+        function sendAutoReply(conversationId) {
+            const conversation = conversations.find(c => c.id === conversationId);
+            if (!conversation) return;
+            
+            const autoReplies = [
+                "Спасибо за ваше сообщение! Наша команда уже рассматривает ваш вопрос.",
+                "Мы получили ваше сообщение и скоро ответим на него.",
+                "Благодарим за обращение! Мы постараемся решить ваш вопрос как можно скорее.",
+                "Ваш запрос принят в обработку. Ожидайте ответа в ближайшее время.",
+                "Спасибо за обращение в техподдержку BeyMarket! Мы уже работаем над вашим вопросом."
+            ];
+            
+            const randomReply = autoReplies[Math.floor(Math.random() * autoReplies.length)];
+            
+            const autoMessage = {
+                id: 'msg-' + Date.now().toString(),
+                sender_id: supportUserId,
+                sender_name: 'Техподдержка BeyMarket',
+                content: randomReply,
+                timestamp: new Date().toISOString(),
+                read: false
+            };
+            
+            conversation.messages.push(autoMessage);
+            conversation.last_message = randomReply;
+            conversation.last_message_time = new Date().toISOString();
+            conversation.unread_count = (conversation.unread_count || 0) + 1;
+            
+            localStorage.setItem('beymarket_conversations', JSON.stringify(conversations));
+            
+            if (currentConversationId === conversationId) {
+                loadMessages(conversationId);
+                loadConversations();
+            }
+        }
+        
+        function markMessagesAsRead(conversationId) {
+            const conversation = conversations.find(c => c.id === conversationId);
+            if (!conversation || !conversation.messages) return;
+            
+            let updated = false;
+            conversation.messages.forEach(msg => {
+                if (msg.sender_id !== currentUser.id && !msg.read) {
+                    msg.read = true;
+                    updated = true;
+                }
+            });
+            
+            if (updated) {
+                conversation.unread_count = 0;
+                localStorage.setItem('beymarket_conversations', JSON.stringify(conversations));
+                loadConversations();
+            }
+        }
+        
+        window.clearChat = function() {
+            if (!currentConversationId) return;
+            
+            if (!confirm('Вы уверены, что хотите очистить историю чата?')) {
+                return;
+            }
+            
+            const conversation = conversations.find(c => c.id === currentConversationId);
+            if (!conversation) return;
+            
+            conversation.messages = [];
+            conversation.last_message = 'Нет сообщений';
+            conversation.last_message_time = new Date().toISOString();
+            conversation.unread_count = 0;
+            
+            localStorage.setItem('beymarket_conversations', JSON.stringify(conversations));
+            
+            loadMessages(currentConversationId);
+            loadConversations();
+            
+            showNotification('История чата очищена', 'success');
+        };
+        
+        window.sendMessageToUser = function(userId) {
+            if (!currentUser) {
+                showNotification('Войдите в систему, чтобы отправить сообщение', 'error');
+                showAuthModal();
+                return;
+            }
+            
+            // Проверяем, есть ли уже диалог с этим пользователем
+            let conversation = conversations.find(conv => 
+                (conv.user1_id === currentUser.id && conv.user2_id === userId) ||
+                (conv.user1_id === userId && conv.user2_id === currentUser.id)
+            );
+            
+            if (!conversation) {
+                const otherUser = users.find(u => u.id === userId);
+                if (!otherUser) {
+                    showNotification('Пользователь не найден', 'error');
+                    return;
+                }
+                
+                // Создаем новый диалог
+                conversation = {
+                    id: 'conv-' + Date.now().toString(),
+                    user1_id: currentUser.id,
+                    user1_name: currentUser.username,
+                    user2_id: userId,
+                    user2_name: otherUser.username,
+                    messages: [],
+                    last_message: 'Нет сообщений',
+                    last_message_time: new Date().toISOString(),
+                    unread_count: 0
+                };
+                
+                conversations.push(conversation);
+                localStorage.setItem('beymarket_conversations', JSON.stringify(conversations));
+            }
+            
+            // Переходим в сообщения и открываем диалог
+            switchPage('messages');
+            setTimeout(() => {
+                openConversation(conversation.id);
+            }, 100);
+        };
+        
+        // ============================================
+        // ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
+        // ============================================
+        
+        window.openProfileModal = function() {
+            if (!currentUser) {
+                showAuthModal();
+                return;
+            }
+            
+            currentProfileUserId = currentUser.id;
+            switchPage('profile');
+        };
+        
+        function loadProfilePage() {
+            const container = document.querySelector('#profilePage .container');
+            if (!container) return;
+            
+            const user = users.find(u => u.id === currentProfileUserId);
+            if (!user) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-exclamation-circle"></i></div>
+                        <div style="font-size: 18px; margin-bottom: var(--space-sm);">Пользователь не найден</div>
+                        <button class="btn btn-primary" onclick="switchPage('home')">На главную</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Определяем роли пользователя
+            const roleBadges = user.roles.map(role => {
+                let roleClass = 'role-badge';
+                if (role === ROLES.FOUNDER) roleClass += ' founder';
+                else if (role === ROLES.ADMIN) roleClass += ' admin';
+                else if (role === ROLES.DEVELOPER) roleClass += ' developer';
+                else if (role === ROLES.MODERATOR) roleClass += ' moderator';
+                else if (role === ROLES.SENIOR_SUPPORT) roleClass += ' senior-support';
+                else if (role === ROLES.SUPPORT) roleClass += ' support';
+                
+                return `<span class="${roleClass}">${role}</span>`;
+            }).join('');
+            
+            // Кнопки действий
+            let actionButtons = '';
+            if (currentUser && currentUser.id === user.id) {
+                actionButtons = `
+                    <button class="btn btn-primary" onclick="showChangePasswordModal()">
+                        <i class="fas fa-key"></i> Сменить пароль
+                    </button>
+                    <button class="btn btn-warning" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                `;
+            } else if (currentUser) {
+                actionButtons = `
+                    <button class="btn btn-primary" onclick="sendMessageToUser('${user.id}')">
+                        <i class="fas fa-comment"></i> Написать сообщение
+                    </button>
+                `;
+            }
+            
+            container.innerHTML = `
+                <div class="profile-header">
+                    <div class="profile-avatar-large">
+                        ${user.username.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="profile-info">
+                        <h1 class="profile-username">${user.username}</h1>
+                        <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">${user.description || 'Нет описания'}</p>
+                        
+                        <div class="profile-meta">
+                            <div class="profile-stat">
+                                <div class="profile-stat-value">${user.listingsCount || 0}</div>
+                                <div class="profile-stat-label">Объявлений</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value">${user.isOnline ? '🟢' : '⚫'}</div>
+                                <div class="profile-stat-label">Статус</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value">${user.servers ? user.servers.length : 0}</div>
+                                <div class="profile-stat-label">Серверов</div>
+                            </div>
+                        </div>
+                        
+                        ${user.phone ? `
+                            <div style="margin-bottom: var(--space-xs);">
+                                <i class="fas fa-phone" style="color: var(--text-secondary); margin-right: var(--space-xs);"></i>
+                                <span>${user.phone}</span>
+                            </div>
+                        ` : ''}
+                        
+                        ${user.location ? `
+                            <div style="margin-bottom: var(--space-xs);">
+                                <i class="fas fa-map-marker-alt" style="color: var(--text-secondary); margin-right: var(--space-xs);"></i>
+                                <span>${user.location}</span>
+                            </div>
+                        ` : ''}
+                        
+                        <div style="margin-bottom: var(--space-xs);">
+                            <i class="fas fa-calendar-alt" style="color: var(--text-secondary); margin-right: var(--space-xs);"></i>
+                            <span>Зарегистрирован: ${formatDate(user.registrationDate)}</span>
+                        </div>
+                        
+                        ${roleBadges ? `
+                            <div class="profile-roles">
+                                ${roleBadges}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: var(--space-sm); margin-bottom: var(--space-xl);">
+                    ${actionButtons}
+                </div>
+                
+                <div class="profile-tabs">
+                    <div class="profile-tab active" data-tab="listings">Объявления пользователя</div>
+                </div>
+                
+                <div class="profile-content active" id="profileListingsTab">
+                    <div class="listings-grid" id="userListings">
+                        <!-- Объявления пользователя загружаются через JS -->
+                    </div>
+                </div>
+                
+                <div style="margin-top: var(--space-xl);">
+                    <button class="btn btn-secondary" onclick="switchPage('home')">
+                        <i class="fas fa-arrow-left"></i> На главную
+                    </button>
+                </div>
+            `;
+            
+            // Инициализируем вкладки профиля
+            initProfileTabs();
+            
+            // Загружаем объявления пользователя
+            loadUserListings();
+        }
+        
+        function initProfileTabs() {
+            document.querySelectorAll('.profile-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Активируем вкладку
+                    document.querySelectorAll('.profile-tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Показываем соответствующий контент
+                    document.querySelectorAll('.profile-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    const contentTab = document.getElementById('profile' + capitalizeFirstLetter(tabId) + 'Tab');
+                    if (contentTab) {
+                        contentTab.classList.add('active');
+                    }
+                });
+            });
+        }
+        
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+        
+        function loadUserListings() {
+            const container = document.getElementById('userListings');
+            if (!container) return;
+            
+            const userListings = listings.filter(listing => 
+                listing.user_id === currentProfileUserId && 
+                listing.is_active && 
+                listing.moderation_status === 'approved'
+            );
+            
+            if (userListings.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <div class="empty-state-icon"><i class="far fa-newspaper"></i></div>
+                        <div style="font-size: 18px; margin-bottom: var(--space-sm);">Нет объявлений</div>
+                        <div style="color: var(--text-secondary);">У этого пользователя пока нет активных объявлений</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            renderListings(userListings, container);
+        }
+        
+        window.showChangePasswordModal = function() {
+            document.getElementById('changePasswordModal').classList.add('active');
+        };
+        
+        window.editListing = function(listingId) {
+            showNotification('Функция редактирования в разработке', 'info');
+        };
+        
+        // ============================================
+        // ВЫХОД ИЗ СИСТЕМЫ
+        // ============================================
+        
+        window.logout = function() {
+            if (!currentUser) return;
+            
+            // Обновляем статус пользователя
+            const user = users.find(u => u.id === currentUser.id);
+            if (user) {
+                user.isOnline = false;
+                localStorage.setItem('beymarket_users', JSON.stringify(users));
+            }
+            
+            // Удаляем текущего пользователя
+            localStorage.removeItem('beymarket_user');
+            currentUser = null;
+            
+            // Обновляем UI
+            updateUIForAuth(false);
+            
+            // Показываем приветственное сообщение
+            updateGuestWelcome();
+            
+            // Переходим на главную
+            switchPage('home');
+            
+            showNotification('Вы вышли из системы', 'info');
+        };
+        
         // ============================================
         // МОДЕРАЦИЯ ОБЪЯВЛЕНИЙ
         // ============================================
         
-        window.moderateListing = async function(listingId, action) {
+        window.moderateListing = function(listingId, action) {
             if (!hasModerationRights()) {
                 showNotification('У вас нет прав для модерации', 'error');
                 return;
@@ -3385,26 +4588,7 @@
                 showNotification('Объявление отклонено', 'info');
             }
             
-            try {
-                // Обновляем в Supabase
-                const { error } = await supabase
-                    .from('listings')
-                    .update({
-                        moderation_status: listing.moderation_status,
-                        moderated_by: listing.moderated_by,
-                        moderated_at: listing.moderated_at,
-                        moderation_reason: listing.moderation_reason,
-                        is_active: listing.is_active
-                    })
-                    .eq('id', listingId);
-                
-                if (error) throw error;
-                
-            } catch (error) {
-                console.error('Ошибка обновления модерации в Supabase:', error);
-            }
-            
-            // Сохраняем изменения в localStorage
+            // Сохраняем изменения
             localStorage.setItem('beymarket_listings', JSON.stringify(listings));
             
             // Обновляем отображение
@@ -3420,7 +4604,7 @@
         // УДАЛЕНИЕ ОБЪЯВЛЕНИЙ
         // ============================================
         
-        window.deleteListing = async function(listingId) {
+        window.deleteListing = function(listingId) {
             if (!currentUser) {
                 showNotification('Войдите в систему', 'error');
                 return;
@@ -3442,20 +4626,7 @@
                 return;
             }
             
-            try {
-                // Удаляем из Supabase
-                const { error } = await supabase
-                    .from('listings')
-                    .delete()
-                    .eq('id', listingId);
-                
-                if (error) throw error;
-                
-            } catch (error) {
-                console.error('Ошибка удаления объявления из Supabase:', error);
-            }
-            
-            // Удаляем объявление из локального массива
+            // Удаляем объявление
             const index = listings.findIndex(l => l.id === listingId);
             if (index !== -1) {
                 listings.splice(index, 1);
@@ -3466,14 +4637,13 @@
                 
                 showNotification('Объявление удалено', 'success');
                 
-                // Закрываем модалку
-                closeModal();
-                
                 // Обновляем страницу
                 if (currentPage === 'listings') {
                     loadAllListings();
                 } else if (currentPage === 'home') {
                     loadFeaturedListings();
+                } else if (currentPage === 'listingDetails') {
+                    switchPage('listings');
                 }
             }
         };
@@ -3517,12 +4687,11 @@
             
             // Статистика регистраций
             const totalUsers = users.length;
-            const bannedUsers = users.filter(u => u.isBanned || u.is_banned).length;
-            const onlineUsers = users.filter(u => u.isOnline || u.is_online).length;
-            const todayRegistrations = users.filter(u => {
-                const regDate = new Date(u.registrationDate || u.registration_date);
-                return regDate >= today;
-            }).length;
+            const bannedUsers = users.filter(u => u.isBanned).length;
+            const onlineUsers = users.filter(u => u.isOnline).length;
+            const todayRegistrations = users.filter(u => new Date(u.registrationDate) >= today).length;
+            const weekRegistrations = users.filter(u => new Date(u.registrationDate) >= weekAgo).length;
+            const monthRegistrations = users.filter(u => new Date(u.registrationDate) >= monthAgo).length;
             
             // Статистика объявлений
             const totalListings = listings.length;
@@ -3530,7 +4699,13 @@
             const pendingListings = listings.filter(l => l.moderation_status === 'pending').length;
             const rejectedListings = listings.filter(l => l.moderation_status === 'rejected').length;
             
+            // Статистика сообщений
+            const totalMessages = conversations.reduce((sum, conv) => sum + (conv.messages ? conv.messages.length : 0), 0);
+            const activeConversations = conversations.length;
+            
             const statsContainer = document.getElementById('adminStats');
+            if (!statsContainer) return;
+            
             statsContainer.innerHTML = `
                 <div class="stat-card">
                     <div class="stat-value">${totalUsers}</div>
@@ -3561,14 +4736,16 @@
                     <div class="stat-label">На модерации</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">${rejectedListings}</div>
-                    <div class="stat-label">Отклонено</div>
+                    <div class="stat-value">${totalMessages}</div>
+                    <div class="stat-label">Сообщений</div>
                 </div>
             `;
         }
         
         function loadUserList() {
             const userList = document.getElementById('userList');
+            if (!userList) return;
+            
             userList.innerHTML = '';
             
             users.forEach(user => {
@@ -3592,24 +4769,24 @@
                     <div class="user-item-info">
                         <div class="user-item-avatar">
                             ${user.username.charAt(0).toUpperCase()}
-                            ${(user.isBanned || user.is_banned) ? '<div class="admin-badge" style="background-color: var(--accent-red);">B</div>' : ''}
+                            ${user.isBanned ? '<div class="admin-badge" style="background-color: var(--accent-red);">B</div>' : ''}
                         </div>
                         <div class="user-item-details">
-                            <h4>${user.username} ${(user.isOnline || user.is_online) ? '🟢' : '⚫'}</h4>
-                            <p>Зарегистрирован: ${formatDate(user.registrationDate || user.registration_date)}</p>
-                            <p>Объявлений: ${user.listingsCount || user.listings_count} | Рейтинг: ${(user.rating || 0).toFixed(1)}</p>
+                            <h4>${user.username} ${user.isOnline ? '🟢' : '⚫'}</h4>
+                            <p>Зарегистрирован: ${formatDate(user.registrationDate)}</p>
+                            <p>Объявлений: ${user.listingsCount}</p>
                             <div class="user-roles">
                                 ${roleBadges}
                             </div>
                         </div>
                     </div>
                     <div class="admin-actions">
-                        ${user.id !== currentUser?.id ? `
+                        ${user.id !== currentUser.id ? `
                             <button class="btn btn-secondary btn-sm" onclick="editUser('${user.id}')">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-warning btn-sm" onclick="toggleBanUser('${user.id}', ${!user.isBanned && !user.is_banned})">
-                                <i class="fas ${(user.isBanned || user.is_banned) ? 'fa-unlock' : 'fa-ban'}"></i>
+                            <button class="btn btn-warning btn-sm" onclick="toggleBanUser('${user.id}', ${!user.isBanned})">
+                                <i class="fas ${user.isBanned ? 'fa-unlock' : 'fa-ban'}"></i>
                             </button>
                             <button class="btn btn-danger btn-sm" onclick="deleteUserAvatar('${user.id}')">
                                 <i class="fas fa-trash"></i>
@@ -3624,6 +4801,8 @@
         
         function loadModerationListings() {
             const moderationContainer = document.getElementById('moderationListings');
+            if (!moderationContainer) return;
+            
             const pendingListings = listings.filter(l => l.moderation_status === 'pending');
             
             renderListings(pendingListings, moderationContainer, true);
@@ -3644,7 +4823,10 @@
                     document.querySelectorAll('.admin-content').forEach(content => {
                         content.classList.remove('active');
                     });
-                    document.getElementById(tabId + 'Tab').classList.add('active');
+                    const contentTab = document.getElementById(tabId + 'Tab');
+                    if (contentTab) {
+                        contentTab.classList.add('active');
+                    }
                 });
             });
         }
@@ -3653,7 +4835,7 @@
         // АДМИН ФУНКЦИИ
         // ============================================
         
-        window.editUser = async function(userId) {
+        window.editUser = function(userId) {
             const user = users.find(u => u.id === userId);
             if (!user) return;
             
@@ -3665,35 +4847,31 @@
                     return;
                 }
                 
+                // Обновляем имя пользователя
                 const oldUsername = user.username;
                 user.username = newUsername;
-                
-                try {
-                    // Обновляем в Supabase
-                    const { error } = await supabase
-                        .from('users')
-                        .update({ username: newUsername })
-                        .eq('id', userId);
-                    
-                    if (error) throw error;
-                    
-                } catch (error) {
-                    console.error('Ошибка обновления пользователя в Supabase:', error);
-                }
                 
                 // Обновляем имя в объявлениях
                 listings.forEach(listing => {
                     if (listing.user_id === userId) {
                         listing.user_name = newUsername;
-                        
-                        // Обновляем в Supabase
-                        supabase
-                            .from('listings')
-                            .update({ user_name: newUsername })
-                            .eq('user_id', userId)
-                            .then(({ error }) => {
-                                if (error) console.error('Ошибка обновления объявлений:', error);
-                            });
+                    }
+                });
+                
+                // Обновляем имя в диалогах
+                conversations.forEach(conv => {
+                    if (conv.user1_id === userId) {
+                        conv.user1_name = newUsername;
+                    }
+                    if (conv.user2_id === userId) {
+                        conv.user2_name = newUsername;
+                    }
+                    if (conv.messages) {
+                        conv.messages.forEach(msg => {
+                            if (msg.sender_id === userId) {
+                                msg.sender_name = newUsername;
+                            }
+                        });
                     }
                 });
                 
@@ -3707,13 +4885,14 @@
                 // Сохраняем изменения
                 localStorage.setItem('beymarket_users', JSON.stringify(users));
                 localStorage.setItem('beymarket_listings', JSON.stringify(listings));
+                localStorage.setItem('beymarket_conversations', JSON.stringify(conversations));
                 
                 showNotification(`Никнейм изменен: ${oldUsername} → ${newUsername}`, 'success');
                 loadUserList();
             }
         };
         
-        window.toggleBanUser = async function(userId, ban) {
+        window.toggleBanUser = function(userId, ban) {
             const user = users.find(u => u.id === userId);
             if (!user) return;
             
@@ -3728,29 +4907,13 @@
             user.isBanned = ban;
             user.isOnline = false;
             
-            try {
-                // Обновляем в Supabase
-                const { error } = await supabase
-                    .from('users')
-                    .update({
-                        is_banned: ban,
-                        is_online: false
-                    })
-                    .eq('id', userId);
-                
-                if (error) throw error;
-                
-            } catch (error) {
-                console.error('Ошибка обновления статуса пользователя в Supabase:', error);
-            }
-            
             // Если это текущий пользователь - разлогиниваем
             if (currentUser && currentUser.id === userId && ban) {
                 localStorage.removeItem('beymarket_user');
                 currentUser = null;
                 updateUIForAuth(false);
                 showNotification('Вы были заблокированы', 'error');
-                document.getElementById('registrationOverlay').classList.add('active');
+                updateGuestWelcome();
             }
             
             localStorage.setItem('beymarket_users', JSON.stringify(users));
@@ -3759,27 +4922,13 @@
             updateAdminStats();
         };
         
-        window.deleteUserAvatar = async function(userId) {
+        window.deleteUserAvatar = function(userId) {
             const user = users.find(u => u.id === userId);
             if (!user) return;
             
             if (!confirm(`Удалить аватар пользователя ${user.username}?`)) return;
             
             user.avatar = null;
-            
-            try {
-                // Обновляем в Supabase
-                const { error } = await supabase
-                    .from('users')
-                    .update({ avatar: null })
-                    .eq('id', userId);
-                
-                if (error) throw error;
-                
-            } catch (error) {
-                console.error('Ошибка удаления аватара в Supabase:', error);
-            }
-            
             localStorage.setItem('beymarket_users', JSON.stringify(users));
             showNotification(`Аватар пользователя ${user.username} удален`, 'success');
         };
@@ -3792,7 +4941,6 @@
             if (confirm('Очистить весь кэш? Это удалит все временные данные.')) {
                 localStorage.removeItem('beymarket_favorites');
                 localStorage.removeItem('beymarket_conversations');
-                localStorage.removeItem('beymarket_reviews');
                 showNotification('Кэш очищен', 'success');
             }
         }
@@ -3801,6 +4949,7 @@
             const backup = {
                 users: users,
                 listings: listings,
+                conversations: conversations,
                 timestamp: new Date().toISOString()
             };
             
@@ -3846,208 +4995,17 @@
             }
         }
         
-        // ============================================
-        // ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ
-        // ============================================
-        
-        window.toggleFavorite = function(listingId) {
-            if (!currentUser) {
-                showNotification('Войдите в систему, чтобы добавлять в избранное', 'error');
-                return;
-            }
-            
-            const index = favorites.indexOf(listingId);
-            if (index === -1) {
-                favorites.push(listingId);
-                showNotification('Добавлено в избранное', 'success');
-            } else {
-                favorites.splice(index, 1);
-                showNotification('Удалено из избранного', 'info');
-            }
-            
-            localStorage.setItem('beymarket_favorites', JSON.stringify(favorites));
-            
-            // Обновляем отображение, если мы на странице избранного
-            if (currentPage === 'favorites') {
-                loadFavorites();
-            }
-        };
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        }
         
         function closeModal() {
-            document.querySelectorAll('.modal.active').forEach(modal => {
+            // Закрыть все модалки
+            document.querySelectorAll('.modal').forEach(modal => {
                 modal.classList.remove('active');
             });
         }
-        
-        window.openListingModal = function(listingId) {
-            const listing = listings.find(l => l.id === listingId);
-            if (!listing) return;
-            
-            const modalContent = document.getElementById('listingModalContent');
-            const formattedPrice = formatPrice(listing.price);
-            const categoryNames = {
-                plate: 'Номерные знаки',
-                clothing: 'Одежда',
-                car: 'Автомобили',
-                business: 'Бизнес',
-                property: 'Недвижимость',
-                accessory: 'Аксессуары'
-            };
-            
-            modalContent.innerHTML = `
-                <h2 style="font-size: 24px; font-weight: 700; margin-bottom: var(--space-md);">${listing.title}</h2>
-                
-                <div style="display: flex; gap: var(--space-lg); margin-bottom: var(--space-lg); flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 300px;">
-                        ${listing.images && listing.images.length > 0 ? `
-                            <div class="image-gallery">
-                                ${listing.images.map((img, index) => `
-                                    <div class="gallery-item" onclick="openFullscreenImage('${img}')">
-                                        <img src="${img}" alt="Фото ${index + 1}">
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : `
-                            <div style="background-color: var(--bg-tertiary); border-radius: var(--radius-medium); padding: var(--space-xl); text-align: center; color: var(--text-tertiary);">
-                                <i class="fas fa-image" style="font-size: 48px; margin-bottom: var(--space-md);"></i>
-                                <p>Нет фотографий</p>
-                            </div>
-                        `}
-                    </div>
-                    
-                    <div style="flex: 1; min-width: 300px;">
-                        <div style="background-color: var(--bg-tertiary); border-radius: var(--radius-medium); padding: var(--space-lg); margin-bottom: var(--space-lg);">
-                            <div style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-sm);">
-                                ${formattedPrice} ₽
-                            </div>
-                            <div style="display: flex; gap: var(--space-sm); margin-bottom: var(--space-md); flex-wrap: wrap;">
-                                <span class="listing-badge ${listing.type === 'sale' ? 'sale' : 'purchase'}">
-                                    ${listing.type === 'sale' ? 'Продажа' : 'Покупка'}
-                                </span>
-                                <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background-color: var(--accent-gray); color: var(--text-primary);">
-                                    ${categoryNames[listing.category] || listing.category}
-                                </span>
-                                <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background-color: var(--accent-blue); color: white;">
-                                    Сервер ${listing.server}
-                                </span>
-                            </div>
-                            
-                            <div style="margin-bottom: var(--space-md);">
-                                <div style="font-weight: 600; margin-bottom: 4px;">Продавец</div>
-                                <div style="display: flex; align-items: center; gap: var(--space-sm);">
-                                    <div style="width: 40px; height: 40px; border-radius: 50%; background-color: var(--accent-blue); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">
-                                        ${listing.user_name.charAt(0).toUpperCase()}
-                                    </div>
-                                    <div>
-                                        <div style="font-weight: 600;">${listing.user_name}</div>
-                                        <div style="font-size: 12px; color: var(--text-secondary);">На сайте с ${formatDate(listing.created_at)}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <button class="btn btn-primary" style="width: 100%;">
-                                <i class="fas fa-comment"></i> Написать продавцу
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="margin-bottom: var(--space-lg);">
-                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-sm);">Описание</h3>
-                    <div style="color: var(--text-primary); line-height: 1.6; white-space: pre-wrap;">${listing.description}</div>
-                </div>
-                
-                ${listing.plate_number ? `
-                    <div style="margin-bottom: var(--space-lg);">
-                        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-sm);">Номерной знак</h3>
-                        <div style="font-size: 24px; font-weight: 700; color: var(--accent-blue);">${listing.plate_number}</div>
-                    </div>
-                ` : ''}
-                
-                <div style="display: flex; justify-content: space-between; margin-top: var(--space-xl);">
-                    <button class="btn btn-secondary" onclick="closeModal()">
-                        <i class="fas fa-times"></i> Закрыть
-                    </button>
-                    
-                    ${(currentUser && (currentUser.id === listing.user_id || hasAdminRights())) ? `
-                        <button class="btn btn-danger" onclick="deleteListing('${listing.id}')">
-                            <i class="fas fa-trash"></i> Удалить объявление
-                        </button>
-                    ` : ''}
-                </div>
-            `;
-            
-            document.getElementById('listingModal').classList.add('active');
-        };
-        
-        window.openProfile = function(userId) {
-            const user = users.find(u => u.id === userId);
-            if (!user) return;
-            
-            const modalContent = document.getElementById('profileModalContent');
-            const userListings = listings.filter(l => l.user_id === userId && l.is_active && l.moderation_status === 'approved');
-            
-            modalContent.innerHTML = `
-                <div style="text-align: center; margin-bottom: var(--space-xl);">
-                    <div style="width: 100px; height: 100px; border-radius: 50%; background-color: var(--accent-blue); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 36px; margin: 0 auto var(--space-md);">
-                        ${user.username.charAt(0).toUpperCase()}
-                    </div>
-                    <h2 style="font-size: 24px; font-weight: 700; margin-bottom: var(--space-xs);">${user.username}</h2>
-                    <div style="color: var(--text-secondary); margin-bottom: var(--space-md);">
-                        ${user.isOnline || user.is_online ? '🟢 В сети' : '⚫ Не в сети'}
-                    </div>
-                    
-                    <div style="display: flex; justify-content: center; gap: var(--space-lg); margin-bottom: var(--space-xl);">
-                        <div style="text-align: center;">
-                            <div style="font-size: 24px; font-weight: 700; color: var(--accent-blue);">${userListings.length}</div>
-                            <div style="font-size: 14px; color: var(--text-secondary);">Объявлений</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 24px; font-weight: 700; color: var(--accent-green);">${(user.rating || 0).toFixed(1)}</div>
-                            <div style="font-size: 14px; color: var(--text-secondary);">Рейтинг</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 24px; font-weight: 700; color: var(--accent-purple);">${user.servers.length}</div>
-                            <div style="font-size: 14px; color: var(--text-secondary);">Серверов</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="margin-bottom: var(--space-lg);">
-                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-sm);">Активные объявления</h3>
-                    ${userListings.length > 0 ? `
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-md);">
-                            ${userListings.slice(0, 3).map(listing => `
-                                <div style="background-color: var(--bg-tertiary); border-radius: var(--radius-medium); padding: var(--space-md); cursor: pointer;" onclick="openListingModal('${listing.id}')">
-                                    <div style="font-weight: 600; margin-bottom: var(--space-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${listing.title}</div>
-                                    <div style="font-weight: 700; color: var(--text-primary);">${formatPrice(listing.price)} ₽</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                        ${userListings.length > 3 ? `
-                            <div style="text-align: center; margin-top: var(--space-md);">
-                                <button class="btn btn-secondary" onclick="switchPage('listings'); closeModal();">
-                                    Показать все (${userListings.length})
-                                </button>
-                            </div>
-                        ` : ''}
-                    ` : `
-                        <div style="text-align: center; color: var(--text-secondary); padding: var(--space-lg);">
-                            <i class="far fa-newspaper" style="font-size: 48px; margin-bottom: var(--space-md);"></i>
-                            <div>Нет активных объявлений</div>
-                        </div>
-                    `}
-                </div>
-                
-                <div style="display: flex; justify-content: center; margin-top: var(--space-xl);">
-                    <button class="btn btn-primary" onclick="closeModal()">
-                        <i class="fas fa-times"></i> Закрыть
-                    </button>
-                </div>
-            `;
-            
-            document.getElementById('profileModal').classList.add('active');
-        };
         
         // ============================================
         // ГОТОВО!
