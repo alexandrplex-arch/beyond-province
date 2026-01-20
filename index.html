@@ -6,8 +6,6 @@
     <title>BeyMarket — Маркетплейс игрового имущества</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Supabase клиент -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-primary: #f8f9fa;
@@ -1286,8 +1284,8 @@
             
             <form id="loginForm" class="auth-form active">
                 <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" id="loginEmail" placeholder="Введите email" required>
+                    <label class="form-label">Логин</label>
+                    <input type="text" class="form-input" id="loginUsername" placeholder="Введите логин" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Пароль</label>
@@ -1299,10 +1297,6 @@
             </form>
             
             <form id="registerForm" class="auth-form">
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" id="registerEmail" placeholder="Введите email" required>
-                </div>
                 <div class="form-group">
                     <label class="form-label">Логин</label>
                     <input type="text" class="form-input" id="registerUsername" placeholder="Придумайте логин" required>
@@ -1817,2049 +1811,2210 @@
     </footer>
 
     <script>
-        // ============================================
-        // КОНФИГУРАЦИЯ SUPABASE
-        // ============================================
-        const SUPABASE_URL = 'https://wxnidsrdnfndvztdfbxx.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_RCm2OA76-0J3VhoeBoPlLg_A5_QRLEQ';
+// ============================================
+// КОНФИГУРАЦИЯ SUPABASE
+// ============================================
+const SUPABASE_URL = 'https://wxnidsrdnfndvztdfbxx.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_RCm2OA76-0J3VhoeBoPlLg_A5_QRLEQ';
+
+let supabaseClient = null;
+let currentUser = null;
+let currentPage = 'home';
+let currentFilter = 'all';
+let currentCategory = 'all';
+let currentServerFilter = 'all';
+let uploadedImages = [];
+const servers = ['1', '2', '3', '4', '5', '6', '7'];
+let allListings = [];
+let allUsers = [];
+let favorites = [];
+let conversations = [];
+let reviews = [];
+
+// ============================================
+// РОЛИ И ПРАВА ДОСТУПА
+// ============================================
+const ROLES = {
+    FOUNDER: 'Основатель Bey Prov',
+    ADMIN: 'Главный Администратор',
+    DEVELOPER: 'Разработчик сайта',
+    SENIOR_SUPPORT: 'Старший Агент технической поддержки',
+    MODERATOR: 'Модератор товаров',
+    SUPPORT: 'Агент технической поддержки',
+    USER: 'Пользователь'
+};
+
+const MODERATION_ROLES = [
+    ROLES.FOUNDER,
+    ROLES.ADMIN,
+    ROLES.DEVELOPER,
+    ROLES.SENIOR_SUPPORT,
+    ROLES.MODERATOR
+];
+
+const ADMIN_ROLES = [
+    ROLES.FOUNDER,
+    ROLES.ADMIN,
+    ROLES.DEVELOPER
+];
+
+// ============================================
+// ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
+// ============================================
+
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('BeyMarket запускается...');
+    
+    // Инициализируем Supabase
+    await initSupabase();
+    
+    // Инициализация всех компонентов
+    initAuthForms();
+    initNavigation();
+    initNotifications();
+    initFilters();
+    initImageUpload();
+    initServers();
+    initPriceFormatting();
+    initTheme();
+    
+    // Проверяем авторизацию
+    checkAuth();
+    
+    console.log('BeyMarket готов к работе!');
+});
+
+// ============================================
+// SUPABASE ИНИЦИАЛИЗАЦИЯ
+// ============================================
+
+async function initSupabase() {
+    try {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase инициализирован');
+    } catch (error) {
+        console.error('Ошибка инициализации Supabase:', error);
+        showNotification('Ошибка подключения к базе данных', 'error');
+    }
+}
+
+async function checkAuth() {
+    try {
+        if (!supabaseClient) {
+            console.error('Supabase не инициализирован');
+            return;
+        }
         
-        // ============================================
-        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
-        // ============================================
-        let supabase = null;
-        let currentUser = null;
-        let currentPage = 'home';
-        let currentFilter = 'all';
-        let currentCategory = 'all';
-        let currentServerFilter = 'all';
-        let uploadedImages = [];
-        const servers = ['1', '2', '3', '4', '5', '6', '7'];
-        let allListings = [];
-        let allUsers = [];
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
         
-        // ============================================
-        // РОЛИ И ПРАВА ДОСТУПА
-        // ============================================
-        const ROLES = {
-            FOUNDER: 'Основатель Bey Prov',
-            ADMIN: 'Главный Администратор',
-            DEVELOPER: 'Разработчик сайта',
-            SENIOR_SUPPORT: 'Старший Агент технической поддержки',
-            MODERATOR: 'Модератор товаров',
-            SUPPORT: 'Агент технической поддержки',
-            USER: 'Пользователь'
-        };
+        if (error) {
+            console.error('Ошибка проверки сессии:', error);
+            return;
+        }
         
-        // ============================================
-        // ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
-        // ============================================
+        if (session && session.user) {
+            // Пользователь авторизован
+            await loadUserData(session.user.id);
+            hideAuthOverlay();
+            showMainContent();
+        } else {
+            // Пользователь не авторизован
+            showAuthOverlay();
+        }
         
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('BeyMarket запускается с Supabase...');
+        // Слушаем изменения авторизации
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            console.log('Состояние авторизации изменилось:', event);
             
-            // Инициализируем Supabase
-            await initSupabase();
-            
-            // Инициализация остальных компонентов
-            initNavigation();
-            initForms();
-            initNotifications();
-            initFilters();
-            initImageUpload();
-            initServers();
-            initPriceFormatting();
-            initTheme();
-            
-            console.log('BeyMarket готов к работе!');
-        });
-        
-        // ============================================
-        // SUPABASE ИНИЦИАЛИЗАЦИЯ
-        // ============================================
-        
-        async function initSupabase() {
-            try {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            if (session && session.user) {
+                await loadUserData(session.user.id);
+                hideAuthOverlay();
+                showMainContent();
                 
-                // Проверяем текущую сессию
-                const { data: { session }, error } = await supabase.auth.getSession();
-                
-                if (session && session.user) {
-                    await loadUserData(session.user.id);
-                    updateUIForAuth(true);
-                    showMainContent();
-                    
-                    // Загружаем начальные данные
-                    await loadInitialData();
-                } else {
-                    showRegistrationOverlay();
+                if (event === 'SIGNED_IN') {
+                    showNotification('Добро пожаловать!', 'success');
                 }
-                
-                // Слушаем изменения авторизации
-                supabase.auth.onAuthStateChange(async (event, session) => {
-                    console.log('Auth state changed:', event);
-                    
-                    if (session && session.user) {
-                        await loadUserData(session.user.id);
-                        updateUIForAuth(true);
-                        showMainContent();
-                        
-                        if (event === 'SIGNED_IN') {
-                            showNotification('Добро пожаловать!', 'success');
-                        }
-                    } else {
-                        currentUser = null;
-                        updateUIForAuth(false);
-                        showRegistrationOverlay();
-                        
-                        if (event === 'SIGNED_OUT') {
-                            showNotification('Вы вышли из системы', 'info');
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error('Error initializing Supabase:', error);
-                showNotification('Ошибка подключения к базе данных', 'error');
-            }
-        }
-        
-        async function loadUserData(userId) {
-            try {
-                const { data: user, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('id', userId)
-                    .single();
-                
-                if (error) {
-                    console.error('Error loading user:', error);
-                    
-                    // Если пользователь не найден в таблице users, но есть в auth
-                    const { data: authUser } = await supabase.auth.getUser();
-                    if (authUser?.user) {
-                        // Создаем базовую запись пользователя
-                        const newUser = {
-                            id: authUser.user.id,
-                            email: authUser.user.email,
-                            username: authUser.user.email.split('@')[0],
-                            roles: [ROLES.USER],
-                            servers: ['1'],
-                            registration_date: new Date().toISOString(),
-                            last_login: new Date().toISOString(),
-                            is_online: true,
-                            is_banned: false,
-                            listings_count: 0,
-                            rating: 0
-                        };
-                        
-                        const { error: insertError } = await supabase
-                            .from('users')
-                            .insert(newUser);
-                        
-                        if (!insertError) {
-                            currentUser = newUser;
-                        }
-                    }
-                    return;
-                }
-                
-                currentUser = user;
-                
-                // Обновляем last_login
-                await supabase
-                    .from('users')
-                    .update({ 
-                        last_login: new Date().toISOString(),
-                        is_online: true 
-                    })
-                    .eq('id', userId);
-                    
-            } catch (error) {
-                console.error('Error in loadUserData:', error);
-            }
-        }
-        
-        async function loadInitialData() {
-            if (!currentUser) return;
-            
-            try {
-                // Загружаем объявления
-                await loadListingsFromSupabase();
-                
-                // Загружаем пользователей (если есть права админа)
-                if (hasAdminRights()) {
-                    await loadUsersFromSupabase();
-                }
-                
-                // Обновляем счетчики категорий
-                updateCategoryCounts();
-                
-            } catch (error) {
-                console.error('Error loading initial data:', error);
-            }
-        }
-        
-        // ============================================
-        // АВТОРИЗАЦИЯ И РЕГИСТРАЦИЯ
-        // ============================================
-        
-        async function handleLogin(email, password) {
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-                
-                if (error) {
-                    showNotification(error.message, 'error');
-                    return false;
-                }
-                
-                return true;
-            } catch (error) {
-                console.error('Login error:', error);
-                showNotification('Ошибка входа', 'error');
-                return false;
-            }
-        }
-        
-        async function handleRegister(email, password, username, selectedServers) {
-            try {
-                // Сначала регистрируемся в auth
-                const { data: authData, error: authError } = await supabase.auth.signUp({
-                    email: email,
-                    password: password,
-                    options: {
-                        data: {
-                            username: username
-                        }
-                    }
-                });
-                
-                if (authError) {
-                    showNotification(authError.message, 'error');
-                    return false;
-                }
-                
-                // Создаем запись в таблице users
-                const { error: userError } = await supabase
-                    .from('users')
-                    .insert({
-                        id: authData.user.id,
-                        email: email,
-                        username: username,
-                        servers: selectedServers,
-                        roles: [ROLES.USER],
-                        registration_date: new Date().toISOString(),
-                        last_login: new Date().toISOString(),
-                        is_online: true,
-                        is_banned: false,
-                        listings_count: 0,
-                        rating: 0.0
-                    });
-                
-                if (userError) {
-                    // Если пользователь уже существует, пытаемся обновить
-                    if (userError.code === '23505') {
-                        const { error: updateError } = await supabase
-                            .from('users')
-                            .update({
-                                username: username,
-                                servers: selectedServers,
-                                is_online: true
-                            })
-                            .eq('email', email);
-                        
-                        if (updateError) {
-                            showNotification(updateError.message, 'error');
-                            return false;
-                        }
-                    } else {
-                        showNotification(userError.message, 'error');
-                        return false;
-                    }
-                }
-                
-                showNotification('Регистрация успешна! Проверьте вашу почту для подтверждения.', 'success');
-                return true;
-                
-            } catch (error) {
-                console.error('Register error:', error);
-                showNotification('Ошибка регистрации', 'error');
-                return false;
-            }
-        }
-        
-        async function handleLogout() {
-            try {
-                if (currentUser) {
-                    // Обновляем статус пользователя
-                    await supabase
-                        .from('users')
-                        .update({ is_online: false })
-                        .eq('id', currentUser.id);
-                }
-                
-                const { error } = await supabase.auth.signOut();
-                if (error) {
-                    showNotification(error.message, 'error');
-                }
-                
+            } else {
                 currentUser = null;
                 updateUIForAuth(false);
-                showRegistrationOverlay();
-                showNotification('Вы успешно вышли из системы', 'success');
+                showAuthOverlay();
                 
-            } catch (error) {
-                console.error('Logout error:', error);
-            }
-        }
-        
-        // ============================================
-        // РАБОТА С ОБЪЯВЛЕНИЯМИ
-        // ============================================
-        
-        async function loadListingsFromSupabase() {
-            try {
-                let query = supabase
-                    .from('listings')
-                    .select('*');
-                
-                const { data, error } = await query.order('created_at', { ascending: false });
-                
-                if (error) {
-                    console.error('Error loading listings:', error);
-                    allListings = [];
-                    return [];
+                if (event === 'SIGNED_OUT') {
+                    showNotification('Вы вышли из системы', 'info');
                 }
-                
-                allListings = data || [];
-                return allListings;
-                
-            } catch (error) {
-                console.error('Error in loadListingsFromSupabase:', error);
-                return [];
             }
-        }
+        });
         
-        async function createListing(listingData) {
-            try {
-                if (!currentUser) {
-                    showNotification('Войдите в систему', 'error');
-                    return null;
-                }
-                
-                // Определяем статус модерации
-                const moderationStatus = hasModerationRights() ? 'approved' : 'pending';
-                
-                const listingToCreate = {
-                    user_id: currentUser.id,
-                    user_name: currentUser.username,
-                    ...listingData,
-                    created_at: new Date().toISOString(),
-                    is_active: true,
-                    views: 0,
-                    moderation_status: moderationStatus
+    } catch (error) {
+        console.error('Ошибка в checkAuth:', error);
+    }
+}
+
+async function loadUserData(userId) {
+    try {
+        if (!supabaseClient) return;
+        
+        // Получаем данные пользователя из таблицы users
+        const { data: user, error } = await supabaseClient
+            .from('users')
+            .select('*')
+            .eq('id', userId)
+            .single();
+        
+        if (error) {
+            console.error('Ошибка загрузки пользователя:', error);
+            
+            // Если пользователь не найден, получаем данные из auth
+            const { data: authUser } = await supabaseClient.auth.getUser();
+            if (authUser?.user) {
+                // Создаем базового пользователя
+                currentUser = {
+                    id: authUser.user.id,
+                    email: authUser.user.email,
+                    username: authUser.user.email.split('@')[0] || 'Пользователь',
+                    roles: [ROLES.USER],
+                    servers: ['1'],
+                    registration_date: new Date().toISOString(),
+                    last_login: new Date().toISOString(),
+                    is_online: true,
+                    is_banned: false,
+                    listings_count: 0,
+                    rating: 0
                 };
                 
-                const { data, error } = await supabase
-                    .from('listings')
-                    .insert(listingToCreate)
-                    .select()
-                    .single();
-                
-                if (error) {
-                    showNotification(error.message, 'error');
-                    return null;
-                }
-                
-                // Обновляем счетчик объявлений пользователя
-                await supabase
-                    .from('users')
-                    .update({ listings_count: (currentUser.listings_count || 0) + 1 })
-                    .eq('id', currentUser.id);
-                
-                // Обновляем данные пользователя
-                currentUser.listings_count = (currentUser.listings_count || 0) + 1;
-                
-                // Добавляем в локальный список
-                allListings.unshift(data);
-                
-                return data;
-                
-            } catch (error) {
-                console.error('Error creating listing:', error);
-                showNotification('Ошибка создания объявления', 'error');
-                return null;
-            }
-        }
-        
-        async function updateListing(listingId, updates) {
-            try {
-                const { data, error } = await supabase
-                    .from('listings')
-                    .update(updates)
-                    .eq('id', listingId)
-                    .select()
-                    .single();
-                
-                if (error) {
-                    showNotification(error.message, 'error');
-                    return null;
-                }
-                
-                // Обновляем локальный список
-                const index = allListings.findIndex(l => l.id === listingId);
-                if (index !== -1) {
-                    allListings[index] = { ...allListings[index], ...updates };
-                }
-                
-                return data;
-                
-            } catch (error) {
-                console.error('Error updating listing:', error);
-                return null;
-            }
-        }
-        
-        async function deleteListing(listingId) {
-            try {
-                // Сначала получаем объявление для проверки прав
-                const { data: listing, error: fetchError } = await supabase
-                    .from('listings')
-                    .select('*')
-                    .eq('id', listingId)
-                    .single();
-                
-                if (fetchError || !listing) {
-                    showNotification('Объявление не найдено', 'error');
-                    return false;
-                }
-                
-                // Проверяем права
-                if (listing.user_id !== currentUser.id && !hasAdminRights()) {
-                    showNotification('У вас нет прав для удаления этого объявления', 'error');
-                    return false;
-                }
-                
-                const { error } = await supabase
-                    .from('listings')
-                    .delete()
-                    .eq('id', listingId);
-                
-                if (error) {
-                    showNotification(error.message, 'error');
-                    return false;
-                }
-                
-                // Обновляем счетчик объявлений пользователя
-                const user = allUsers.find(u => u.id === listing.user_id) || currentUser;
-                if (user && user.id === listing.user_id) {
-                    await supabase
+                // Пытаемся сохранить в базу
+                try {
+                    await supabaseClient
                         .from('users')
-                        .update({ listings_count: Math.max(0, (user.listings_count || 1) - 1) })
-                        .eq('id', user.id);
+                        .insert(currentUser);
+                } catch (insertError) {
+                    console.warn('Не удалось создать запись пользователя:', insertError);
                 }
+            }
+            return;
+        }
+        
+        // Сохраняем данные пользователя
+        currentUser = user;
+        
+        // Обновляем last_login
+        await supabaseClient
+            .from('users')
+            .update({ 
+                last_login: new Date().toISOString(),
+                is_online: true 
+            })
+            .eq('id', userId);
+        
+        // Обновляем UI
+        updateUIForAuth(true);
+        
+        // Загружаем начальные данные
+        await loadInitialData();
+        
+    } catch (error) {
+        console.error('Ошибка в loadUserData:', error);
+    }
+}
+
+// ============================================
+// ФУНКЦИИ АВТОРИЗАЦИИ
+// ============================================
+
+async function loginUser(email, password) {
+    try {
+        if (!supabaseClient) {
+            showNotification('Ошибка подключения', 'error');
+            return false;
+        }
+        
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+        
+        if (error) {
+            showNotification(error.message, 'error');
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Ошибка входа:', error);
+        showNotification('Ошибка входа', 'error');
+        return false;
+    }
+}
+
+async function registerUser(email, password, username, selectedServers) {
+    try {
+        if (!supabaseClient) {
+            showNotification('Ошибка подключения', 'error');
+            return false;
+        }
+        
+        // Регистрируем пользователя в auth
+        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    username: username
+                }
+            }
+        });
+        
+        if (authError) {
+            showNotification(authError.message, 'error');
+            return false;
+        }
+        
+        // Создаем запись в таблице users
+        const { error: userError } = await supabaseClient
+            .from('users')
+            .insert({
+                id: authData.user.id,
+                email: email,
+                username: username,
+                servers: selectedServers,
+                roles: [ROLES.USER],
+                registration_date: new Date().toISOString(),
+                last_login: new Date().toISOString(),
+                is_online: true,
+                is_banned: false,
+                listings_count: 0,
+                rating: 0.0
+            });
+        
+        if (userError) {
+            // Если пользователь уже существует, обновляем его
+            if (userError.code === '23505') {
+                const { error: updateError } = await supabaseClient
+                    .from('users')
+                    .update({
+                        username: username,
+                        servers: selectedServers,
+                        is_online: true
+                    })
+                    .eq('email', email);
                 
-                // Удаляем из локального списка
-                allListings = allListings.filter(l => l.id !== listingId);
-                
-                return true;
-                
-            } catch (error) {
-                console.error('Error deleting listing:', error);
-                showNotification('Ошибка удаления объявления', 'error');
+                if (updateError) {
+                    showNotification(updateError.message, 'error');
+                    return false;
+                }
+            } else {
+                showNotification(userError.message, 'error');
                 return false;
             }
         }
         
-        // ============================================
-        // ИЗБРАННОЕ
-        // ============================================
+        showNotification('Регистрация успешна!', 'success');
+        return true;
         
-        async function toggleFavorite(listingId) {
-            try {
-                if (!currentUser) {
-                    showNotification('Войдите в систему', 'error');
-                    return;
-                }
-                
-                // Проверяем, есть ли уже в избранном
-                const { data: existing, error: checkError } = await supabase
-                    .from('favorites')
-                    .select('*')
-                    .eq('user_id', currentUser.id)
-                    .eq('listing_id', listingId)
-                    .single();
-                
-                if (checkError && checkError.code !== 'PGRST116') {
-                    console.error('Error checking favorite:', checkError);
-                    return;
-                }
-                
-                if (existing) {
-                    // Удаляем из избранного
-                    const { error } = await supabase
-                        .from('favorites')
-                        .delete()
-                        .eq('id', existing.id);
-                    
-                    if (error) {
-                        showNotification(error.message, 'error');
-                        return;
-                    }
-                    
-                    showNotification('Удалено из избранного', 'info');
-                } else {
-                    // Добавляем в избранное
-                    const { error } = await supabase
-                        .from('favorites')
-                        .insert({
-                            user_id: currentUser.id,
-                            listing_id: listingId
-                        });
-                    
-                    if (error) {
-                        showNotification(error.message, 'error');
-                        return;
-                    }
-                    
-                    showNotification('Добавлено в избранное', 'success');
-                }
-            } catch (error) {
-                console.error('Error toggling favorite:', error);
-            }
+    } catch (error) {
+        console.error('Ошибка регистрации:', error);
+        showNotification('Ошибка регистрации', 'error');
+        return false;
+    }
+}
+
+async function logoutUser() {
+    try {
+        if (currentUser) {
+            // Обновляем статус пользователя
+            await supabaseClient
+                .from('users')
+                .update({ is_online: false })
+                .eq('id', currentUser.id);
         }
         
-        async function loadUserFavorites() {
-            try {
-                if (!currentUser) return [];
-                
-                const { data, error } = await supabase
-                    .from('favorites')
-                    .select(`
-                        listing_id,
-                        listings (*)
-                    `)
-                    .eq('user_id', currentUser.id);
-                
-                if (error) {
-                    console.error('Error loading favorites:', error);
-                    return [];
-                }
-                
-                return data.map(item => item.listings).filter(Boolean);
-            } catch (error) {
-                console.error('Error loading favorites:', error);
-                return [];
-            }
+        const { error } = await supabaseClient.auth.signOut();
+        if (error) {
+            showNotification(error.message, 'error');
         }
         
-        // ============================================
-        // ПОЛЬЗОВАТЕЛИ И АДМИНКА
-        // ============================================
+        currentUser = null;
+        updateUIForAuth(false);
+        showAuthOverlay();
         
-        async function loadUsersFromSupabase() {
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .order('registration_date', { ascending: false });
-                
-                if (error) {
-                    console.error('Error loading users:', error);
-                    allUsers = [];
-                    return [];
-                }
-                
-                allUsers = data || [];
-                return allUsers;
-            } catch (error) {
-                console.error('Error loading users:', error);
-                return [];
-            }
+    } catch (error) {
+        console.error('Ошибка выхода:', error);
+    }
+}
+
+// ============================================
+// ИНИЦИАЛИЗАЦИЯ ФОРМ АВТОРИЗАЦИИ
+// ============================================
+
+function initAuthForms() {
+    // Показ формы регистрации
+    document.getElementById('showRegister').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('loginForm').classList.remove('active');
+        document.getElementById('registerForm').classList.add('active');
+    });
+    
+    // Показ формы входа
+    document.getElementById('showLogin').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('registerForm').classList.remove('active');
+        document.getElementById('loginForm').classList.add('active');
+    });
+    
+    // Форма входа
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        
+        if (!email || !password) {
+            showNotification('Заполните все поля', 'error');
+            return;
         }
         
-        async function updateUser(userId, updates) {
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .update(updates)
-                    .eq('id', userId)
-                    .select()
-                    .single();
-                
-                if (error) {
-                    showNotification(error.message, 'error');
-                    return null;
-                }
-                
-                // Обновляем локальный список
-                const index = allUsers.findIndex(u => u.id === userId);
-                if (index !== -1) {
-                    allUsers[index] = { ...allUsers[index], ...updates };
-                }
-                
-                // Если это текущий пользователь, обновляем его данные
-                if (currentUser && currentUser.id === userId) {
-                    currentUser = { ...currentUser, ...updates };
-                    updateUIForAuth(true);
-                }
-                
-                return data;
-            } catch (error) {
-                console.error('Error updating user:', error);
-                return null;
-            }
+        const success = await loginUser(email, password);
+        if (success) {
+            this.reset();
+        }
+    });
+    
+    // Форма регистрации
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('registerEmail').value.trim();
+        const username = document.getElementById('registerUsername').value.trim();
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('registerConfirmPassword').value;
+        
+        if (!email || !username || !password || !confirmPassword) {
+            showNotification('Заполните все поля', 'error');
+            return;
         }
         
-        async function loadAdminStats() {
-            try {
-                const [
-                    usersData,
-                    listingsData,
-                    favoritesData
-                ] = await Promise.all([
-                    supabase.from('users').select('id, is_online, is_banned, registration_date'),
-                    supabase.from('listings').select('id, created_at, moderation_status, is_active'),
-                    supabase.from('favorites').select('id')
-                ]);
-                
-                const now = new Date();
-                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                
-                const todayRegistrations = usersData.data?.filter(user => 
-                    new Date(user.registration_date) >= today
-                ).length || 0;
-                
-                const onlineUsers = usersData.data?.filter(user => user.is_online).length || 0;
-                const bannedUsers = usersData.data?.filter(user => user.is_banned).length || 0;
-                
-                const approvedListings = listingsData.data?.filter(
-                    listing => listing.moderation_status === 'approved' && listing.is_active
-                ).length || 0;
-                
-                const pendingListings = listingsData.data?.filter(
-                    listing => listing.moderation_status === 'pending'
-                ).length || 0;
-                
-                return {
-                    totalUsers: usersData.data?.length || 0,
-                    onlineUsers,
-                    bannedUsers,
-                    todayRegistrations,
-                    totalListings: listingsData.data?.length || 0,
-                    approvedListings,
-                    pendingListings,
-                    totalFavorites: favoritesData.data?.length || 0
-                };
-            } catch (error) {
-                console.error('Error loading admin stats:', error);
-                return {
-                    totalUsers: 0,
-                    onlineUsers: 0,
-                    bannedUsers: 0,
-                    todayRegistrations: 0,
-                    totalListings: 0,
-                    approvedListings: 0,
-                    pendingListings: 0,
-                    totalFavorites: 0
-                };
-            }
+        if (password.length < 6) {
+            showNotification('Пароль должен содержать минимум 6 символов', 'error');
+            return;
         }
         
-        // ============================================
-        // ПРОВЕРКА ПРАВ ДОСТУПА
-        // ============================================
-        
-        function hasModerationRights() {
-            if (!currentUser || !currentUser.roles) return false;
-            const MODERATION_ROLES = [
-                ROLES.FOUNDER,
-                ROLES.ADMIN,
-                ROLES.DEVELOPER,
-                ROLES.SENIOR_SUPPORT,
-                ROLES.MODERATOR
-            ];
-            return currentUser.roles.some(role => MODERATION_ROLES.includes(role));
+        if (password !== confirmPassword) {
+            showNotification('Пароли не совпадают', 'error');
+            return;
         }
         
-        function hasAdminRights() {
-            if (!currentUser || !currentUser.roles) return false;
-            const ADMIN_ROLES = [
-                ROLES.FOUNDER,
-                ROLES.ADMIN,
-                ROLES.DEVELOPER
-            ];
-            return currentUser.roles.some(role => ADMIN_ROLES.includes(role));
+        // Собираем выбранные серверы
+        const selectedServers = [];
+        document.querySelectorAll('#serverSelection input:checked').forEach(checkbox => {
+            selectedServers.push(checkbox.value);
+        });
+        
+        if (selectedServers.length === 0) {
+            showNotification('Выберите хотя бы один сервер', 'error');
+            return;
         }
         
-        // ============================================
-        // UI ФУНКЦИИ
-        // ============================================
-        
-        function updateUIForAuth(isAuthenticated) {
-            const userName = document.getElementById('userName');
-            const userAvatar = document.getElementById('userAvatar');
-            const userInfo = document.getElementById('userInfo');
-            const adminBadge = document.getElementById('adminBadge');
-            const adminTab = document.getElementById('adminTab');
-            const pendingTab = document.getElementById('pendingTab');
+        const success = await registerUser(email, password, username, selectedServers);
+        if (success) {
+            this.reset();
             
-            if (isAuthenticated && currentUser) {
-                userName.textContent = currentUser.username;
-                userAvatar.textContent = currentUser.username.charAt(0).toUpperCase();
-                
-                if (hasAdminRights() || hasModerationRights()) {
-                    adminBadge.style.display = 'flex';
-                } else {
-                    adminBadge.style.display = 'none';
-                }
-                
-                if (hasAdminRights()) {
-                    adminTab.style.display = 'block';
-                } else {
-                    adminTab.style.display = 'none';
-                }
-                
-                if (hasModerationRights()) {
-                    pendingTab.style.display = 'block';
-                } else {
-                    pendingTab.style.display = 'none';
-                }
-                
-                userInfo.onclick = function() {
-                    openProfile(currentUser.id);
-                };
+            // Сбрасываем выбор серверов
+            document.querySelectorAll('#serverSelection .server-checkbox').forEach(cb => {
+                cb.classList.remove('selected');
+                cb.querySelector('input').checked = false;
+            });
+            
+            // Переключаемся на форму входа
+            document.getElementById('registerForm').classList.remove('active');
+            document.getElementById('loginForm').classList.add('active');
+        }
+    });
+    
+    // Форма создания объявления
+    document.getElementById('createListingForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!currentUser) {
+            showNotification('Войдите в систему', 'error');
+            showAuthOverlay();
+            return;
+        }
+        
+        const type = document.getElementById('listingType').value;
+        const category = document.getElementById('listingCategory').value;
+        const title = document.getElementById('listingTitle').value;
+        const description = document.getElementById('listingDescription').value;
+        const price = parseInt(document.getElementById('listingPrice').value);
+        const server = document.getElementById('listingServer').value;
+        
+        if (!type || !category || !title || !description || !price || !server) {
+            showNotification('Заполните все обязательные поля', 'error');
+            return;
+        }
+        
+        if (price < 0) {
+            showNotification('Цена не может быть отрицательной', 'error');
+            return;
+        }
+        
+        if (price > 999999999) {
+            showNotification('Максимальная цена - 999.999.999 ₽', 'error');
+            return;
+        }
+        
+        // Валидация номера для категории "Номерные знаки"
+        if (category === 'plate') {
+            const plateNumber = document.getElementById('plateNumber').value;
+            const plateFormat = /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}(77|78|63)$/;
+            
+            if (!plateFormat.test(plateNumber)) {
+                showNotification('Неверный формат номерного знака. Пример: А123АА77', 'error');
+                return;
+            }
+        }
+        
+        const listingData = {
+            type,
+            category,
+            title,
+            description,
+            price,
+            server,
+            plate_number: category === 'plate' ? document.getElementById('plateNumber').value : null,
+            images: uploadedImages,
+            moderation_status: hasModerationRights() ? 'approved' : 'pending'
+        };
+        
+        const listing = await createListing(listingData);
+        if (listing) {
+            showNotification(
+                'Объявление успешно размещено!' + 
+                (listing.moderation_status === 'approved' ? ' Одобрено автоматически.' : ' Отправлено на модерацию.'),
+                'success'
+            );
+            
+            // Сбрасываем форму
+            this.reset();
+            uploadedImages = [];
+            updateImagePreview();
+            document.getElementById('plateNumberSection').style.display = 'none';
+            document.getElementById('pricePreview').textContent = '';
+            
+            // Переходим на страницу объявлений
+            switchPage('listings');
+        }
+    });
+    
+    // Показ/скрытие поля для номера
+    const categorySelect = document.getElementById('listingCategory');
+    if (categorySelect) {
+        categorySelect.addEventListener('change', function() {
+            const plateSection = document.getElementById('plateNumberSection');
+            if (this.value === 'plate') {
+                plateSection.style.display = 'block';
             } else {
-                userName.textContent = 'Войти';
-                userAvatar.textContent = '?';
-                adminBadge.style.display = 'none';
-                adminTab.style.display = 'none';
-                pendingTab.style.display = 'none';
-                
-                userInfo.onclick = function() {
-                    showAuthModal();
-                };
+                plateSection.style.display = 'none';
             }
+        });
+    }
+}
+
+// ============================================
+// UI ФУНКЦИИ ДЛЯ АВТОРИЗАЦИИ
+// ============================================
+
+function showAuthOverlay() {
+    document.getElementById('authOverlay').style.display = 'flex';
+}
+
+function hideAuthOverlay() {
+    document.getElementById('authOverlay').style.display = 'none';
+}
+
+function showMainContent() {
+    document.getElementById('mainContent').style.display = 'block';
+}
+
+function updateUIForAuth(isAuthenticated) {
+    const userName = document.getElementById('userName');
+    const userAvatar = document.getElementById('userAvatar');
+    const userInfo = document.getElementById('userInfo');
+    const adminBadge = document.getElementById('adminBadge');
+    const adminTab = document.getElementById('adminTab');
+    const pendingTab = document.getElementById('pendingTab');
+    
+    if (isAuthenticated && currentUser) {
+        userName.textContent = currentUser.username;
+        userAvatar.textContent = currentUser.username.charAt(0).toUpperCase();
+        
+        if (hasAdminRights() || hasModerationRights()) {
+            adminBadge.style.display = 'flex';
+        } else {
+            adminBadge.style.display = 'none';
         }
         
-        function showMainContent() {
-            document.getElementById('registrationOverlay').classList.remove('active');
-            document.getElementById('mainContent').style.display = 'block';
+        if (hasAdminRights()) {
+            adminTab.style.display = 'block';
+        } else {
+            adminTab.style.display = 'none';
         }
         
-        function showRegistrationOverlay() {
-            document.getElementById('registrationOverlay').classList.add('active');
-            document.getElementById('mainContent').style.display = 'none';
+        if (hasModerationRights()) {
+            pendingTab.style.display = 'block';
+        } else {
+            pendingTab.style.display = 'none';
         }
         
-        // ============================================
-        // НАВИГАЦИЯ И СТРАНИЦЫ
-        // ============================================
+        userInfo.onclick = function() {
+            openProfile(currentUser.id);
+        };
+    } else {
+        userName.textContent = 'Войти';
+        userAvatar.textContent = '?';
+        adminBadge.style.display = 'none';
+        adminTab.style.display = 'none';
+        pendingTab.style.display = 'none';
         
-        function initNavigation() {
-            // Навигационные ссылки
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.addEventListener('click', function() {
-                    const page = this.getAttribute('data-page');
-                    switchPage(page);
-                });
-            });
-            
-            // Кнопка "Разместить" в навбаре
-            document.getElementById('createListingBtn').addEventListener('click', function() {
-                if (!currentUser) {
-                    showNotification('Войдите в систему, чтобы разместить объявление', 'error');
-                    showAuthModal();
-                    return;
-                }
-                switchPage('create');
-            });
-            
-            // Логотип
-            document.getElementById('goToHome').addEventListener('click', function() {
-                switchPage('home');
-            });
-            
-            // Категории в футере
-            document.querySelectorAll('.footer-links a[data-category]').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const category = this.getAttribute('data-category');
-                    switchPage('listings');
-                    setTimeout(() => {
-                        filterListingsByCategory(category);
-                    }, 100);
-                });
-            });
-            
-            // Закрытие модалок
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        this.classList.remove('active');
-                    }
-                });
-            });
+        userInfo.onclick = function() {
+            showAuthOverlay();
+        };
+    }
+}
+
+// ============================================
+// РАБОТА С ОБЪЯВЛЕНИЯМИ
+// ============================================
+
+async function loadInitialData() {
+    if (!currentUser) return;
+    
+    try {
+        await loadListingsFromSupabase();
+        
+        if (hasAdminRights()) {
+            await loadUsersFromSupabase();
         }
         
-        async function switchPage(page) {
-            // Скрываем все страницы
-            document.querySelectorAll('.page').forEach(p => {
-                p.classList.remove('active');
-            });
+        updateCategoryCounts();
+        
+    } catch (error) {
+        console.error('Ошибка загрузки данных:', error);
+    }
+}
+
+async function loadListingsFromSupabase() {
+    try {
+        if (!supabaseClient) return [];
+        
+        const { data, error } = await supabaseClient
+            .from('listings')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            console.error('Ошибка загрузки объявлений:', error);
+            allListings = [];
+            return [];
+        }
+        
+        allListings = data || [];
+        return allListings;
+        
+    } catch (error) {
+        console.error('Ошибка в loadListingsFromSupabase:', error);
+        return [];
+    }
+}
+
+async function createListing(listingData) {
+    try {
+        if (!currentUser || !supabaseClient) {
+            showNotification('Ошибка авторизации', 'error');
+            return null;
+        }
+        
+        const listingToCreate = {
+            user_id: currentUser.id,
+            user_name: currentUser.username,
+            ...listingData,
+            created_at: new Date().toISOString(),
+            is_active: true,
+            views: 0
+        };
+        
+        const { data, error } = await supabaseClient
+            .from('listings')
+            .insert(listingToCreate)
+            .select()
+            .single();
+        
+        if (error) {
+            showNotification(error.message, 'error');
+            return null;
+        }
+        
+        // Обновляем счетчик объявлений
+        await supabaseClient
+            .from('users')
+            .update({ listings_count: (currentUser.listings_count || 0) + 1 })
+            .eq('id', currentUser.id);
+        
+        currentUser.listings_count = (currentUser.listings_count || 0) + 1;
+        allListings.unshift(data);
+        
+        return data;
+        
+    } catch (error) {
+        console.error('Ошибка создания объявления:', error);
+        showNotification('Ошибка создания объявления', 'error');
+        return null;
+    }
+}
+
+async function updateListing(listingId, updates) {
+    try {
+        if (!supabaseClient) return null;
+        
+        const { data, error } = await supabaseClient
+            .from('listings')
+            .update(updates)
+            .eq('id', listingId)
+            .select()
+            .single();
+        
+        if (error) {
+            showNotification(error.message, 'error');
+            return null;
+        }
+        
+        // Обновляем локальный список
+        const index = allListings.findIndex(l => l.id === listingId);
+        if (index !== -1) {
+            allListings[index] = { ...allListings[index], ...updates };
+        }
+        
+        return data;
+        
+    } catch (error) {
+        console.error('Ошибка обновления объявления:', error);
+        return null;
+    }
+}
+
+async function deleteListing(listingId) {
+    try {
+        if (!supabaseClient) return false;
+        
+        // Сначала получаем объявление для проверки прав
+        const { data: listing, error: fetchError } = await supabaseClient
+            .from('listings')
+            .select('*')
+            .eq('id', listingId)
+            .single();
+        
+        if (fetchError || !listing) {
+            showNotification('Объявление не найдено', 'error');
+            return false;
+        }
+        
+        // Проверяем права
+        if (listing.user_id !== currentUser.id && !hasAdminRights()) {
+            showNotification('У вас нет прав для удаления этого объявления', 'error');
+            return false;
+        }
+        
+        const { error } = await supabaseClient
+            .from('listings')
+            .delete()
+            .eq('id', listingId);
+        
+        if (error) {
+            showNotification(error.message, 'error');
+            return false;
+        }
+        
+        // Обновляем счетчик объявлений пользователя
+        const user = allUsers.find(u => u.id === listing.user_id) || currentUser;
+        if (user && user.id === listing.user_id) {
+            await supabaseClient
+                .from('users')
+                .update({ listings_count: Math.max(0, (user.listings_count || 1) - 1) })
+                .eq('id', user.id);
+        }
+        
+        // Удаляем из локального списка
+        allListings = allListings.filter(l => l.id !== listingId);
+        
+        return true;
+        
+    } catch (error) {
+        console.error('Ошибка удаления объявления:', error);
+        showNotification('Ошибка удаления объявления', 'error');
+        return false;
+    }
+}
+
+// ============================================
+// ИЗБРАННОЕ
+// ============================================
+
+async function toggleFavorite(listingId) {
+    try {
+        if (!currentUser || !supabaseClient) {
+            showNotification('Войдите в систему', 'error');
+            return;
+        }
+        
+        // Проверяем, есть ли уже в избранном
+        const { data: existing, error: checkError } = await supabaseClient
+            .from('favorites')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .eq('listing_id', listingId)
+            .single();
+        
+        if (checkError && checkError.code !== 'PGRST116') {
+            console.error('Error checking favorite:', checkError);
+            return;
+        }
+        
+        if (existing) {
+            // Удаляем из избранного
+            const { error } = await supabaseClient
+                .from('favorites')
+                .delete()
+                .eq('id', existing.id);
             
-            // Показываем выбранную страницу
-            document.getElementById(page + 'Page').classList.add('active');
-            
-            // Обновляем навигацию
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('data-page') === page) {
-                    link.classList.add('active');
-                }
-            });
-            
-            // Загружаем данные для страницы
-            currentPage = page;
-            
-            if (page === 'home') {
-                await loadFeaturedListings();
-            } else if (page === 'listings') {
-                await loadAllListings();
-            } else if (page === 'favorites') {
-                await loadFavoritesPage();
-            } else if (page === 'admin') {
-                await loadAdminPanel();
+            if (error) {
+                showNotification(error.message, 'error');
+                return;
             }
+            
+            showNotification('Удалено из избранного', 'info');
+        } else {
+            // Добавляем в избранное
+            const { error } = await supabaseClient
+                .from('favorites')
+                .insert({
+                    user_id: currentUser.id,
+                    listing_id: listingId
+                });
+            
+            if (error) {
+                showNotification(error.message, 'error');
+                return;
+            }
+            
+            showNotification('Добавлено в избранное', 'success');
+        }
+    } catch (error) {
+        console.error('Error toggling favorite:', error);
+    }
+}
+
+async function loadUserFavorites() {
+    try {
+        if (!currentUser || !supabaseClient) return [];
+        
+        const { data, error } = await supabaseClient
+            .from('favorites')
+            .select(`
+                listing_id,
+                listings (*)
+            `)
+            .eq('user_id', currentUser.id);
+        
+        if (error) {
+            console.error('Error loading favorites:', error);
+            return [];
         }
         
-        // ============================================
-        // ФОРМЫ
-        // ============================================
+        return data.map(item => item.listings).filter(Boolean);
+    } catch (error) {
+        console.error('Error loading favorites:', error);
+        return [];
+    }
+}
+
+// ============================================
+// ПОЛЬЗОВАТЕЛИ И АДМИНКА
+// ============================================
+
+async function loadUsersFromSupabase() {
+    try {
+        if (!supabaseClient) return [];
         
-        function initForms() {
-            // Вкладки аутентификации
-            document.querySelectorAll('.auth-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabId = this.getAttribute('data-tab');
-                    
-                    document.querySelectorAll('.auth-tab').forEach(t => {
-                        t.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                    
-                    document.querySelectorAll('.auth-form').forEach(form => {
-                        form.classList.remove('active');
-                    });
-                    document.getElementById(tabId + 'Form').classList.add('active');
-                });
-            });
-            
-            // Форма входа
-            document.getElementById('loginForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const email = document.getElementById('loginEmail').value.trim();
-                const password = document.getElementById('loginPassword').value;
-                
-                if (!email || !password) {
-                    showNotification('Заполните все поля', 'error');
-                    return;
-                }
-                
-                const success = await handleLogin(email, password);
-                if (success) {
-                    document.getElementById('authModal').classList.remove('active');
-                    this.reset();
-                }
-            });
-            
-            // Форма регистрации
-            document.getElementById('registerForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const email = document.getElementById('registerEmail').value.trim();
-                const username = document.getElementById('registerUsername').value.trim();
-                const password = document.getElementById('registerPassword').value;
-                const confirmPassword = document.getElementById('registerConfirmPassword').value;
-                
-                if (!email || !username || !password || !confirmPassword) {
-                    showNotification('Заполните все поля', 'error');
-                    return;
-                }
-                
-                if (password.length < 6) {
-                    showNotification('Пароль должен содержать минимум 6 символов', 'error');
-                    return;
-                }
-                
-                if (password !== confirmPassword) {
-                    showNotification('Пароли не совпадают', 'error');
-                    return;
-                }
-                
-                // Собираем выбранные серверы
-                const selectedServers = [];
-                document.querySelectorAll('#serverSelection input:checked').forEach(checkbox => {
-                    selectedServers.push(checkbox.value);
-                });
-                
-                if (selectedServers.length === 0) {
-                    showNotification('Выберите хотя бы один сервер', 'error');
-                    return;
-                }
-                
-                const success = await handleRegister(email, password, username, selectedServers);
-                if (success) {
-                    document.getElementById('authModal').classList.remove('active');
-                    this.reset();
-                    
-                    // Сбрасываем выбор серверов
-                    document.querySelectorAll('#serverSelection .server-checkbox').forEach(cb => {
-                        cb.classList.remove('selected');
-                        cb.querySelector('input').checked = false;
-                    });
-                }
-            });
-            
-            // Форма создания объявления
-            document.getElementById('createListingForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                if (!currentUser) {
-                    showNotification('Войдите в систему', 'error');
-                    showAuthModal();
-                    return;
-                }
-                
-                const type = document.getElementById('listingType').value;
-                const category = document.getElementById('listingCategory').value;
-                const title = document.getElementById('listingTitle').value;
-                const description = document.getElementById('listingDescription').value;
-                const price = parseInt(document.getElementById('listingPrice').value);
-                const server = document.getElementById('listingServer').value;
-                
-                if (!type || !category || !title || !description || !price || !server) {
-                    showNotification('Заполните все обязательные поля', 'error');
-                    return;
-                }
-                
-                if (price < 0) {
-                    showNotification('Цена не может быть отрицательной', 'error');
-                    return;
-                }
-                
-                if (price > 999999999) {
-                    showNotification('Максимальная цена - 999.999.999 ₽', 'error');
-                    return;
-                }
-                
-                // Валидация номера для категории "Номерные знаки"
-                if (category === 'plate') {
-                    const plateNumber = document.getElementById('plateNumber').value;
-                    const plateFormat = /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}(77|78|63)$/;
-                    
-                    if (!plateFormat.test(plateNumber)) {
-                        showNotification('Неверный формат номерного знака. Пример: А123АА77', 'error');
-                        return;
-                    }
-                }
-                
-                const listingData = {
-                    type,
-                    category,
-                    title,
-                    description,
-                    price,
-                    server,
-                    plate_number: category === 'plate' ? document.getElementById('plateNumber').value : null,
-                    images: uploadedImages
-                };
-                
-                const listing = await createListing(listingData);
-                if (listing) {
-                    showNotification(
-                        'Объявление успешно размещено!' + 
-                        (listing.moderation_status === 'approved' ? ' Одобрено автоматически.' : ' Отправлено на модерацию.'),
-                        'success'
-                    );
-                    
-                    // Сбрасываем форму
-                    this.reset();
-                    uploadedImages = [];
-                    updateImagePreview();
-                    document.getElementById('plateNumberSection').style.display = 'none';
-                    document.getElementById('pricePreview').textContent = '';
-                    
-                    // Переходим на страницу объявлений
-                    switchPage('listings');
-                }
-            });
-            
-            // Показ/скрытие поля для номера в зависимости от категории
-            document.getElementById('listingCategory').addEventListener('change', function() {
-                const plateSection = document.getElementById('plateNumberSection');
-                if (this.value === 'plate') {
-                    plateSection.style.display = 'block';
-                } else {
-                    plateSection.style.display = 'none';
-                }
-            });
+        const { data, error } = await supabaseClient
+            .from('users')
+            .select('*')
+            .order('registration_date', { ascending: false });
+        
+        if (error) {
+            console.error('Ошибка загрузки пользователей:', error);
+            allUsers = [];
+            return [];
         }
         
-        // ============================================
-        // ФИЛЬТРЫ И СОРТИРОВКА
-        // ============================================
+        allUsers = data || [];
+        return allUsers;
+    } catch (error) {
+        console.error('Ошибка загрузки пользователей:', error);
+        return [];
+    }
+}
+
+async function updateUser(userId, updates) {
+    try {
+        if (!supabaseClient) return null;
         
-        function initFilters() {
-            // Фильтры на главной
-            document.querySelectorAll('#homeFilterTabs .filter-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    document.querySelectorAll('#homeFilterTabs .filter-tab').forEach(t => {
-                        t.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                    
-                    currentFilter = this.getAttribute('data-filter');
-                    loadFeaturedListings();
-                });
-            });
-            
-            // Фильтры на странице объявлений
-            document.querySelectorAll('#listingsFilterTabs .filter-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    document.querySelectorAll('#listingsFilterTabs .filter-tab').forEach(t => {
-                        t.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                    
-                    currentFilter = this.getAttribute('data-filter');
-                    loadAllListings();
-                });
-            });
-            
-            // Клики по категориям
-            document.querySelectorAll('.category-card').forEach(card => {
-                card.addEventListener('click', function() {
-                    const category = this.getAttribute('data-category');
-                    switchPage('listings');
-                    
-                    document.querySelectorAll('#listingsFilterTabs .filter-tab').forEach(t => {
-                        t.classList.remove('active');
-                        if (t.getAttribute('data-filter') === 'all') {
-                            t.classList.add('active');
-                        }
-                    });
-                    
-                    currentFilter = 'all';
-                    currentCategory = category;
-                    loadAllListings();
-                });
-            });
+        const { data, error } = await supabaseClient
+            .from('users')
+            .update(updates)
+            .eq('id', userId)
+            .select()
+            .single();
+        
+        if (error) {
+            showNotification(error.message, 'error');
+            return null;
         }
         
-        function filterListingsByCategory(category) {
+        // Обновляем локальный список
+        const index = allUsers.findIndex(u => u.id === userId);
+        if (index !== -1) {
+            allUsers[index] = { ...allUsers[index], ...updates };
+        }
+        
+        // Если это текущий пользователь, обновляем его данные
+        if (currentUser && currentUser.id === userId) {
+            currentUser = { ...currentUser, ...updates };
+            updateUIForAuth(true);
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Ошибка обновления пользователя:', error);
+        return null;
+    }
+}
+
+async function loadAdminStats() {
+    try {
+        if (!supabaseClient) return null;
+        
+        const [
+            usersData,
+            listingsData,
+            favoritesData
+        ] = await Promise.all([
+            supabaseClient.from('users').select('id, is_online, is_banned, registration_date'),
+            supabaseClient.from('listings').select('id, created_at, moderation_status, is_active'),
+            supabaseClient.from('favorites').select('id')
+        ]);
+        
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        const todayRegistrations = usersData.data?.filter(user => 
+            new Date(user.registration_date) >= today
+        ).length || 0;
+        
+        const onlineUsers = usersData.data?.filter(user => user.is_online).length || 0;
+        const bannedUsers = usersData.data?.filter(user => user.is_banned).length || 0;
+        
+        const approvedListings = listingsData.data?.filter(
+            listing => listing.moderation_status === 'approved' && listing.is_active
+        ).length || 0;
+        
+        const pendingListings = listingsData.data?.filter(
+            listing => listing.moderation_status === 'pending'
+        ).length || 0;
+        
+        return {
+            totalUsers: usersData.data?.length || 0,
+            onlineUsers,
+            bannedUsers,
+            todayRegistrations,
+            totalListings: listingsData.data?.length || 0,
+            approvedListings,
+            pendingListings,
+            totalFavorites: favoritesData.data?.length || 0
+        };
+    } catch (error) {
+        console.error('Ошибка загрузки статистики:', error);
+        return null;
+    }
+}
+
+function hasModerationRights() {
+    if (!currentUser || !currentUser.roles) return false;
+    return currentUser.roles.some(role => MODERATION_ROLES.includes(role));
+}
+
+function hasAdminRights() {
+    if (!currentUser || !currentUser.roles) return false;
+    return currentUser.roles.some(role => ADMIN_ROLES.includes(role));
+}
+
+// ============================================
+// МОДЕРАЦИЯ ОБЪЯВЛЕНИЙ
+// ============================================
+
+async function moderateListing(listingId, action, reason = null) {
+    if (!hasModerationRights()) {
+        showNotification('У вас нет прав для модерации', 'error');
+        return;
+    }
+    
+    const updates = {
+        moderated_by: currentUser.id,
+        moderated_at: new Date().toISOString(),
+        moderation_status: action === 'approve' ? 'approved' : 'rejected',
+        moderation_reason: reason,
+        is_active: action === 'approve'
+    };
+    
+    const listing = await updateListing(listingId, updates);
+    if (listing) {
+        showNotification(
+            action === 'approve' ? 'Объявление одобрено' : 'Объявление отклонено',
+            action === 'approve' ? 'success' : 'info'
+        );
+        
+        // Обновляем страницу
+        if (currentPage === 'listings' && currentFilter === 'pending') {
+            await loadAllListings();
+        }
+        
+        // Обновляем статистику
+        updateCategoryCounts();
+    }
+}
+
+// ============================================
+// ИНИЦИАЛИЗАЦИЯ ОСТАЛЬНЫХ КОМПОНЕНТОВ
+// ============================================
+
+function initNavigation() {
+    // Навигационные ссылки
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', function() {
+            const page = this.getAttribute('data-page');
+            switchPage(page);
+        });
+    });
+    
+    // Кнопка "Разместить" в навбаре
+    document.getElementById('createListingBtn').addEventListener('click', function() {
+        if (!currentUser) {
+            showNotification('Войдите в систему', 'error');
+            showAuthOverlay();
+            return;
+        }
+        switchPage('create');
+    });
+    
+    // Логотип
+    document.getElementById('goToHome').addEventListener('click', function() {
+        switchPage('home');
+    });
+    
+    // Категории в футере
+    document.querySelectorAll('.footer-links a[data-category]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const category = this.getAttribute('data-category');
+            switchPage('listings');
+            setTimeout(() => {
+                filterListingsByCategory(category);
+            }, 100);
+        });
+    });
+    
+    // Закрытие модалок
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
+        });
+    });
+}
+
+function initNotifications() {
+    window.showNotification = function(message, type = 'info') {
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notification-text');
+        
+        notificationText.textContent = message;
+        notification.className = `notification ${type}`;
+        notification.classList.add('show');
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    };
+}
+
+function initFilters() {
+    // Фильтры на главной
+    document.querySelectorAll('#homeFilterTabs .filter-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('#homeFilterTabs .filter-tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            currentFilter = this.getAttribute('data-filter');
+            loadFeaturedListings();
+        });
+    });
+    
+    // Фильтры на странице объявлений
+    document.querySelectorAll('#listingsFilterTabs .filter-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('#listingsFilterTabs .filter-tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            currentFilter = this.getAttribute('data-filter');
+            loadAllListings();
+        });
+    });
+    
+    // Клики по категориям
+    document.querySelectorAll('.category-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const category = this.getAttribute('data-category');
+            switchPage('listings');
+            
+            document.querySelectorAll('#listingsFilterTabs .filter-tab').forEach(t => {
+                t.classList.remove('active');
+                if (t.getAttribute('data-filter') === 'all') {
+                    t.classList.add('active');
+                }
+            });
+            
+            currentFilter = 'all';
             currentCategory = category;
             loadAllListings();
+        });
+    });
+}
+
+function initImageUpload() {
+    const uploadArea = document.getElementById('imageUploadArea');
+    const fileInput = document.getElementById('imageInput');
+    
+    if (uploadArea && fileInput) {
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'var(--accent-blue)';
+            uploadArea.style.backgroundColor = 'var(--bg-tertiary)';
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '';
+            uploadArea.style.backgroundColor = '';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '';
+            uploadArea.style.backgroundColor = '';
+            
+            const files = e.dataTransfer.files;
+            handleImageFiles(files);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            handleImageFiles(e.target.files);
+        });
+    }
+}
+
+function handleImageFiles(files) {
+    const preview = document.getElementById('imagePreview');
+    
+    Array.from(files).forEach(file => {
+        if (!file.type.startsWith('image/')) {
+            showNotification('Можно загружать только изображения', 'error');
+            return;
         }
         
-        // ============================================
-        // ЗАГРУЗКА И ОТОБРАЖЕНИЕ ДАННЫХ
-        // ============================================
-        
-        async function loadFeaturedListings() {
-            await loadListingsFromSupabase();
-            const container = document.getElementById('featuredListings');
-            
-            let filteredListings = allListings.filter(listing => 
-                listing.is_active && 
-                listing.moderation_status === 'approved'
-            );
-            
-            if (currentFilter !== 'all') {
-                filteredListings = filteredListings.filter(listing => listing.type === currentFilter);
-            }
-            
-            if (currentServerFilter !== 'all') {
-                filteredListings = filteredListings.filter(listing => listing.server === currentServerFilter);
-            }
-            
-            const featured = filteredListings.slice(0, 6);
-            renderListings(featured, container);
+        if (file.size > 5 * 1024 * 1024) {
+            showNotification('Файл слишком большой (максимум 5MB)', 'error');
+            return;
         }
         
-        async function loadAllListings() {
-            await loadListingsFromSupabase();
-            const container = document.getElementById('allListings');
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imageData = e.target.result;
+            uploadedImages.push(imageData);
             
-            let filteredListings = allListings.filter(listing => {
-                if (currentFilter === 'pending' && hasModerationRights()) {
-                    return listing.moderation_status === 'pending';
-                }
-                return listing.is_active && listing.moderation_status === 'approved';
-            });
-            
-            if (currentFilter === 'sale' || currentFilter === 'purchase') {
-                filteredListings = filteredListings.filter(listing => listing.type === currentFilter);
-            } else if (currentFilter === 'my' && currentUser) {
-                filteredListings = filteredListings.filter(listing => listing.user_id === currentUser.id);
-            }
-            
-            if (currentCategory !== 'all') {
-                filteredListings = filteredListings.filter(listing => listing.category === currentCategory);
-            }
-            
-            if (currentServerFilter !== 'all') {
-                filteredListings = filteredListings.filter(listing => listing.server === currentServerFilter);
-            }
-            
-            renderListings(filteredListings, container, currentFilter === 'pending');
-        }
-        
-        async function loadFavoritesPage() {
-            const container = document.getElementById('favoritesListings');
-            
-            if (!currentUser) {
-                container.innerHTML = `
-                    <div class="empty-state" style="grid-column: 1 / -1;">
-                        <div class="empty-state-icon"><i class="far fa-heart"></i></div>
-                        <div style="font-size: 18px; margin-bottom: var(--space-sm);">Войдите в систему</div>
-                        <div style="color: var(--text-secondary); margin-bottom: var(--space-lg);">Чтобы просмотреть избранное, необходимо войти в систему</div>
-                        <button class="btn btn-primary" onclick="showAuthModal()">Войти</button>
-                    </div>
-                `;
-                return;
-            }
-            
-            const favoriteListings = await loadUserFavorites();
-            const activeFavorites = favoriteListings.filter(listing => 
-                listing.is_active && 
-                listing.moderation_status === 'approved'
-            );
-            
-            if (activeFavorites.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state" style="grid-column: 1 / -1;">
-                        <div class="empty-state-icon"><i class="far fa-heart"></i></div>
-                        <div style="font-size: 18px; margin-bottom: var(--space-sm);">Нет избранных объявлений</div>
-                        <div style="color: var(--text-secondary);">Добавляйте объявления в избранное, нажимая на сердечко</div>
-                    </div>
-                `;
-                return;
-            }
-            
-            renderListings(activeFavorites, container);
-        }
-        
-        function renderListings(listingsArray, container, showModerationBadge = false) {
-            if (!listingsArray || listingsArray.length === 0) {
-                const noItemsText = showModerationBadge ? 
-                    'Нет объявлений на модерации' : 
-                    'Объявлений не найдено';
-                const noItemsSubtext = showModerationBadge ? 
-                    'Все объявления проверены' : 
-                    'Попробуйте изменить фильтры или создать новое объявление';
-                
-                container.innerHTML = `
-                    <div class="empty-state" style="grid-column: 1 / -1;">
-                        <div class="empty-state-icon"><i class="far fa-newspaper"></i></div>
-                        <div style="font-size: 18px; margin-bottom: var(--space-sm);">${noItemsText}</div>
-                        <div style="color: var(--text-secondary);">${noItemsSubtext}</div>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = listingsArray.map(listing => {
-                const badgeClass = listing.type === 'sale' ? 'sale' : 'purchase';
-                const badgeText = listing.type === 'sale' ? 'Продажа' : 'Покупка';
-                
-                const categoryIcons = {
-                    plate: 'fa-car',
-                    clothing: 'fa-tshirt',
-                    car: 'fa-car-side',
-                    business: 'fa-briefcase',
-                    property: 'fa-home',
-                    accessory: 'fa-gem'
-                };
-                
-                const icon = categoryIcons[listing.category] || 'fa-tag';
-                
-                // Проверяем, есть ли в избранном
-                const isFavorite = currentUser && false; // Будет загружаться отдельно
-                const favoriteIcon = isFavorite ? 'fas fa-heart' : 'far fa-heart';
-                
-                // Форматирование цены
-                const formattedPrice = formatPrice(listing.price);
-                
-                // Первое изображение
-                const firstImage = listing.images && listing.images.length > 0 ? listing.images[0] : null;
-                
-                // Бейдж модерации
-                let moderationBadge = '';
-                if (showModerationBadge || listing.moderation_status !== 'approved') {
-                    const statusClass = listing.moderation_status === 'pending' ? 'pending' : 
-                                       listing.moderation_status === 'rejected' ? 'rejected' : 'approved';
-                    const statusText = listing.moderation_status === 'pending' ? 'На модерации' : 
-                                      listing.moderation_status === 'rejected' ? 'Отклонено' : 'Одобрено';
-                    moderationBadge = `<div class="listing-badge ${statusClass}">${statusText}</div>`;
-                }
-                
-                return `
-                    <div class="listing-card" onclick="openListingModal('${listing.id}')">
-                        <div class="listing-image">
-                            ${firstImage ? 
-                                `<img src="${firstImage}" alt="${listing.title}" onclick="event.stopPropagation(); openFullscreenImage('${firstImage}')">` : 
-                                `<i class="fas ${icon}"></i>`
-                            }
-                            <div class="listing-badge ${badgeClass}">${badgeText}</div>
-                            ${moderationBadge}
-                            ${currentUser && listing.moderation_status === 'approved' ? `
-                                <div class="listing-badge" style="top: auto; bottom: 12px; right: 12px; background-color: var(--accent-gray); cursor: pointer;" onclick="event.stopPropagation(); toggleFavorite('${listing.id}')">
-                                    <i class="${favoriteIcon}"></i>
-                                </div>
-                            ` : ''}
-                        </div>
-                        <div class="listing-content">
-                            <h3 class="listing-title">${listing.title}</h3>
-                            <p class="listing-description">${listing.description}</p>
-                            <div class="listing-price">${formattedPrice}</div>
-                            <div class="listing-meta">
-                                <span><i class="far fa-user"></i> ${listing.user_name}</span>
-                                <span><i class="fas fa-server"></i> ${listing.server}</span>
-                                <span><i class="far fa-clock"></i> ${formatDate(listing.created_at)}</span>
-                            </div>
-                            ${showModerationBadge && hasModerationRights() ? `
-                                <div class="moderation-actions">
-                                    <button class="btn btn-success btn-sm" onclick="event.stopPropagation(); moderateListing('${listing.id}', 'approve')">
-                                        <i class="fas fa-check"></i> Одобрить
-                                    </button>
-                                    <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); moderateListing('${listing.id}', 'reject')">
-                                        <i class="fas fa-times"></i> Отклонить
-                                    </button>
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-        
-        // ============================================
-        // АДМИН ПАНЕЛЬ
-        // ============================================
-        
-        async function loadAdminPanel() {
-            if (!hasAdminRights()) {
-                showNotification('Доступ запрещен', 'error');
-                switchPage('home');
-                return;
-            }
-            
-            await updateAdminStats();
-            await loadUserList();
-            await loadModerationListings();
-            initAdminTabs();
-        }
-        
-        async function updateAdminStats() {
-            const stats = await loadAdminStats();
-            const statsContainer = document.getElementById('adminStats');
-            
-            if (!stats) return;
-            
-            statsContainer.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-value">${stats.totalUsers}</div>
-                    <div class="stat-label">Всего пользователей</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${stats.onlineUsers}</div>
-                    <div class="stat-label">Онлайн сейчас</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${stats.bannedUsers}</div>
-                    <div class="stat-label">Заблокировано</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${stats.todayRegistrations}</div>
-                    <div class="stat-label">Регистраций сегодня</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${stats.totalListings}</div>
-                    <div class="stat-label">Всего объявлений</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${stats.approvedListings}</div>
-                    <div class="stat-label">Одобрено</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${stats.pendingListings}</div>
-                    <div class="stat-label">На модерации</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${stats.totalFavorites}</div>
-                    <div class="stat-label">Избранных</div>
-                </div>
+            const previewItem = document.createElement('div');
+            previewItem.className = 'preview-item';
+            previewItem.innerHTML = `
+                <img src="${imageData}" alt="Превью" onclick="openFullscreenImage('${imageData}')">
+                <button class="remove" onclick="removeImage(${uploadedImages.length - 1})">×</button>
             `;
-        }
-        
-        async function loadUserList() {
-            await loadUsersFromSupabase();
-            const userList = document.getElementById('userList');
-            userList.innerHTML = '';
-            
-            allUsers.forEach(user => {
-                const userItem = document.createElement('div');
-                userItem.className = 'user-item';
-                
-                const roleBadges = user.roles.map(role => {
-                    let roleClass = 'role-badge';
-                    if (role === ROLES.FOUNDER) roleClass += ' founder';
-                    else if (role === ROLES.ADMIN) roleClass += ' admin';
-                    else if (role === ROLES.DEVELOPER) roleClass += ' developer';
-                    else if (role === ROLES.MODERATOR) roleClass += ' moderator';
-                    else if (role === ROLES.SENIOR_SUPPORT) roleClass += ' senior-support';
-                    else if (role === ROLES.SUPPORT) roleClass += ' support';
-                    
-                    return `<span class="${roleClass}">${role}</span>`;
-                }).join('');
-                
-                userItem.innerHTML = `
-                    <div class="user-item-info">
-                        <div class="user-item-avatar">
-                            ${user.username.charAt(0).toUpperCase()}
-                            ${user.is_banned ? '<div class="admin-badge" style="background-color: var(--accent-red);">B</div>' : ''}
-                        </div>
-                        <div class="user-item-details">
-                            <h4>${user.username} ${user.is_online ? '🟢' : '⚫'}</h4>
-                            <p>Зарегистрирован: ${formatDate(user.registration_date)}</p>
-                            <p>Объявлений: ${user.listings_count || 0} | Рейтинг: ${user.rating ? user.rating.toFixed(1) : '0.0'}</p>
-                            <div class="user-roles">
-                                ${roleBadges}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="admin-actions">
-                        ${user.id !== currentUser?.id ? `
-                            <button class="btn btn-secondary btn-sm" onclick="editUser('${user.id}')">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-warning btn-sm" onclick="toggleBanUser('${user.id}', ${!user.is_banned})">
-                                <i class="fas ${user.is_banned ? 'fa-unlock' : 'fa-ban'}"></i>
-                            </button>
-                        ` : ''}
-                    </div>
-                `;
-                
-                userList.appendChild(userItem);
-            });
-        }
-        
-        async function loadModerationListings() {
-            await loadListingsFromSupabase();
-            const moderationContainer = document.getElementById('moderationListings');
-            const pendingListings = allListings.filter(l => l.moderation_status === 'pending');
-            
-            renderListings(pendingListings, moderationContainer, true);
-        }
-        
-        function initAdminTabs() {
-            document.querySelectorAll('.admin-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabId = this.getAttribute('data-tab');
-                    
-                    document.querySelectorAll('.admin-tab').forEach(t => {
-                        t.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                    
-                    document.querySelectorAll('.admin-content').forEach(content => {
-                        content.classList.remove('active');
-                    });
-                    document.getElementById(tabId + 'Tab').classList.add('active');
-                });
-            });
-        }
-        
-        // ============================================
-        // АДМИН ФУНКЦИИ
-        // ============================================
-        
-        window.editUser = async function(userId) {
-            const user = allUsers.find(u => u.id === userId);
-            if (!user) return;
-            
-            const newUsername = prompt('Введите новый никнейм:', user.username);
-            if (newUsername && newUsername.trim() && newUsername !== user.username) {
-                // Проверяем, не занят ли никнейм
-                if (allUsers.some(u => u.username === newUsername && u.id !== userId)) {
-                    showNotification('Этот никнейм уже занят', 'error');
-                    return;
-                }
-                
-                const updates = { username: newUsername };
-                const updatedUser = await updateUser(userId, updates);
-                
-                if (updatedUser) {
-                    showNotification(`Никнейм изменен: ${user.username} → ${newUsername}`, 'success');
-                }
-            }
+            preview.appendChild(previewItem);
         };
-        
-        window.toggleBanUser = async function(userId, ban) {
-            const user = allUsers.find(u => u.id === userId);
-            if (!user) return;
+        reader.readAsDataURL(file);
+    });
+}
+
+function initServers() {
+    const serverSelection = document.getElementById('serverSelection');
+    if (serverSelection) {
+        servers.forEach(server => {
+            const checkbox = document.createElement('div');
+            checkbox.className = 'server-checkbox';
+            checkbox.innerHTML = `
+                <input type="checkbox" id="server-${server}" value="${server}">
+                <label for="server-${server}">Сервер ${server}</label>
+            `;
             
-            if (user.roles.includes(ROLES.FOUNDER) || user.roles.includes(ROLES.ADMIN)) {
-                showNotification('Нельзя заблокировать администратора', 'error');
-                return;
+            checkbox.addEventListener('click', function() {
+                this.classList.toggle('selected');
+                const input = this.querySelector('input');
+                input.checked = !input.checked;
+            });
+            
+            serverSelection.appendChild(checkbox);
+        });
+    }
+    
+    initServerFilter('homeServerFilter');
+    initServerFilter('listingsServerFilter');
+}
+
+function initServerFilter(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    container.innerHTML = '<button class="server-filter-btn active" data-server="all">Все серверы</button>';
+    
+    servers.forEach(server => {
+        const btn = document.createElement('button');
+        btn.className = 'server-filter-btn';
+        btn.dataset.server = server;
+        btn.textContent = `Сервер ${server}`;
+        btn.addEventListener('click', function() {
+            document.querySelectorAll(`#${containerId} .server-filter-btn`).forEach(b => {
+                b.classList.remove('active');
+            });
+            this.classList.add('active');
+            currentServerFilter = server;
+            
+            if (currentPage === 'home') {
+                loadFeaturedListings();
+            } else if (currentPage === 'listings') {
+                loadAllListings();
             }
+        });
+        container.appendChild(btn);
+    });
+    
+    const allBtn = container.querySelector('[data-server="all"]');
+    if (allBtn) {
+        allBtn.addEventListener('click', function() {
+            document.querySelectorAll(`#${containerId} .server-filter-btn`).forEach(b => {
+                b.classList.remove('active');
+            });
+            this.classList.add('active');
+            currentServerFilter = 'all';
             
-            if (ban && !confirm(`Заблокировать пользователя ${user.username}?`)) return;
-            if (!ban && !confirm(`Разблокировать пользователя ${user.username}?`)) return;
-            
-            const updates = { 
-                is_banned: ban,
-                is_online: ban ? false : user.is_online
-            };
-            
-            const updatedUser = await updateUser(userId, updates);
-            
-            if (updatedUser) {
-                showNotification(`Пользователь ${user.username} ${ban ? 'заблокирован' : 'разблокирован'}`, 'success');
+            if (currentPage === 'home') {
+                loadFeaturedListings();
+            } else if (currentPage === 'listings') {
+                loadAllListings();
             }
-            
-            // Если это текущий пользователь - разлогиниваем
-            if (currentUser && currentUser.id === userId && ban) {
-                await handleLogout();
+        });
+    }
+}
+
+function initPriceFormatting() {
+    const priceInput = document.getElementById('listingPrice');
+    const pricePreview = document.getElementById('pricePreview');
+    
+    if (priceInput && pricePreview) {
+        priceInput.addEventListener('input', function() {
+            const value = this.value;
+            if (value && !isNaN(value) && value >= 0) {
+                const formatted = formatPrice(value);
+                pricePreview.textContent = `Форматированная цена: ${formatted} ₽`;
+                pricePreview.className = 'price-preview formatted';
+            } else {
+                pricePreview.textContent = 'Введите корректную цену';
+                pricePreview.className = 'price-preview';
             }
-        };
+        });
         
-        // ============================================
-        // МОДЕРАЦИЯ
-        // ============================================
-        
-        window.moderateListing = async function(listingId, action) {
-            if (!hasModerationRights()) {
-                showNotification('У вас нет прав для модерации', 'error');
-                return;
-            }
-            
-            let reason = null;
-            if (action === 'reject') {
-                reason = prompt('Укажите причину отклонения:', 'Нарушение правил публикации');
-                if (reason === null) return;
-            }
-            
-            const updates = {
-                moderated_by: currentUser.id,
-                moderated_at: new Date().toISOString(),
-                moderation_status: action === 'approve' ? 'approved' : 'rejected',
-                moderation_reason: reason,
-                is_active: action === 'approve'
-            };
-            
-            const listing = await updateListing(listingId, updates);
-            if (listing) {
-                showNotification(
-                    action === 'approve' ? 'Объявление одобрено' : 'Объявление отклонено',
-                    action === 'approve' ? 'success' : 'info'
-                );
-                
-                // Обновляем страницу
-                if (currentPage === 'listings' && currentFilter === 'pending') {
-                    await loadAllListings();
-                }
-                
-                // Обновляем статистику
-                updateCategoryCounts();
-            }
-        };
-        
-        // ============================================
-        // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-        // ============================================
-        
-        function initServers() {
-            const serverSelection = document.getElementById('serverSelection');
-            servers.forEach(server => {
-                const checkbox = document.createElement('div');
-                checkbox.className = 'server-checkbox';
-                checkbox.innerHTML = `
-                    <input type="checkbox" id="server-${server}" value="${server}">
-                    <label for="server-${server}">Сервер ${server}</label>
-                `;
-                
-                checkbox.addEventListener('click', function() {
-                    this.classList.toggle('selected');
-                    const input = this.querySelector('input');
-                    input.checked = !input.checked;
-                });
-                
-                serverSelection.appendChild(checkbox);
-            });
-            
-            initServerFilter('homeServerFilter');
-            initServerFilter('listingsServerFilter');
+        if (priceInput.value) {
+            priceInput.dispatchEvent(new Event('input'));
         }
+    }
+}
+
+function initTheme() {
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
         
-        function initServerFilter(containerId) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '<button class="server-filter-btn active" data-server="all">Все серверы</button>';
-            
-            servers.forEach(server => {
-                const btn = document.createElement('button');
-                btn.className = 'server-filter-btn';
-                btn.dataset.server = server;
-                btn.textContent = `Сервер ${server}`;
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll(`#${containerId} .server-filter-btn`).forEach(b => {
-                        b.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                    currentServerFilter = server;
-                    
-                    if (currentPage === 'home') {
-                        loadFeaturedListings();
-                    } else if (currentPage === 'listings') {
-                        loadAllListings();
-                    }
-                });
-                container.appendChild(btn);
-            });
-            
-            container.querySelector('[data-server="all"]').addEventListener('click', function() {
-                document.querySelectorAll(`#${containerId} .server-filter-btn`).forEach(b => {
-                    b.classList.remove('active');
-                });
-                this.classList.add('active');
-                currentServerFilter = 'all';
-                
-                if (currentPage === 'home') {
-                    loadFeaturedListings();
-                } else if (currentPage === 'listings') {
-                    loadAllListings();
-                }
-            });
-        }
-        
-        function initImageUpload() {
-            const uploadArea = document.getElementById('imageUploadArea');
-            const fileInput = document.getElementById('imageInput');
-            const preview = document.getElementById('imagePreview');
-            
-            uploadArea.addEventListener('click', () => fileInput.click());
-            
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.style.borderColor = 'var(--accent-blue)';
-                uploadArea.style.backgroundColor = 'var(--bg-tertiary)';
-            });
-            
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.style.borderColor = '';
-                uploadArea.style.backgroundColor = '';
-            });
-            
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadArea.style.borderColor = '';
-                uploadArea.style.backgroundColor = '';
-                
-                const files = e.dataTransfer.files;
-                handleImageFiles(files);
-            });
-            
-            fileInput.addEventListener('change', (e) => {
-                handleImageFiles(e.target.files);
-            });
-        }
-        
-        function handleImageFiles(files) {
-            const preview = document.getElementById('imagePreview');
-            
-            Array.from(files).forEach(file => {
-                if (!file.type.startsWith('image/')) {
-                    showNotification('Можно загружать только изображения', 'error');
-                    return;
-                }
-                
-                if (file.size > 5 * 1024 * 1024) {
-                    showNotification('Файл слишком большой (максимум 5MB)', 'error');
-                    return;
-                }
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const imageData = e.target.result;
-                    uploadedImages.push(imageData);
-                    
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'preview-item';
-                    previewItem.innerHTML = `
-                        <img src="${imageData}" alt="Превью" onclick="openFullscreenImage('${imageData}')">
-                        <button class="remove" onclick="removeImage(${uploadedImages.length - 1})">×</button>
-                    `;
-                    preview.appendChild(previewItem);
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-        
-        window.removeImage = function(index) {
-            uploadedImages.splice(index, 1);
-            updateImagePreview();
-        };
-        
-        function updateImagePreview() {
-            const preview = document.getElementById('imagePreview');
-            preview.innerHTML = '';
-            
-            uploadedImages.forEach((imageData, index) => {
-                const previewItem = document.createElement('div');
-                previewItem.className = 'preview-item';
-                previewItem.innerHTML = `
-                    <img src="${imageData}" alt="Превью" onclick="openFullscreenImage('${imageData}')">
-                    <button class="remove" onclick="removeImage(${index})">×</button>
-                `;
-                preview.appendChild(previewItem);
-            });
-        }
-        
-        function initPriceFormatting() {
-            const priceInput = document.getElementById('listingPrice');
-            const pricePreview = document.getElementById('pricePreview');
-            
-            priceInput.addEventListener('input', function() {
-                const value = this.value;
-                if (value && !isNaN(value) && value >= 0) {
-                    const formatted = formatPrice(value);
-                    pricePreview.textContent = `Форматированная цена: ${formatted} ₽`;
-                    pricePreview.className = 'price-preview formatted';
-                } else {
-                    pricePreview.textContent = 'Введите корректную цену';
-                    pricePreview.className = 'price-preview';
-                }
-            });
-            
-            if (priceInput.value) {
-                priceInput.dispatchEvent(new Event('input'));
-            }
-        }
-        
-        function initNotifications() {
-            window.showNotification = function(message, type = 'info') {
-                const notification = document.getElementById('notification');
-                const notificationText = document.getElementById('notification-text');
-                
-                notificationText.textContent = message;
-                notification.className = `notification ${type}`;
-                notification.classList.add('show');
-                
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 3000);
-            };
-        }
-        
-        function initTheme() {
-            const themeToggle = document.getElementById('themeToggle');
-            themeToggle.addEventListener('click', toggleTheme);
-            
-            const savedTheme = localStorage.getItem('beymarket_theme');
-            if (savedTheme === 'dark') {
-                document.body.classList.add('dark-mode');
-                updateThemeIcon();
-            }
-        }
-        
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('beymarket_theme', isDark ? 'dark' : 'light');
+        const savedTheme = localStorage.getItem('beymarket_theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
             updateThemeIcon();
         }
-        
-        function updateThemeIcon() {
-            const icon = document.querySelector('#themeToggle i');
-            if (document.body.classList.contains('dark-mode')) {
-                icon.className = 'fas fa-sun';
-            } else {
-                icon.className = 'fas fa-moon';
-            }
+    }
+}
+
+function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('beymarket_theme', isDark ? 'dark' : 'light');
+    updateThemeIcon();
+}
+
+function updateThemeIcon() {
+    const icon = document.querySelector('#themeToggle i');
+    if (document.body.classList.contains('dark-mode')) {
+        icon.className = 'fas fa-sun';
+    } else {
+        icon.className = 'fas fa-moon';
+    }
+}
+
+// ============================================
+// ЗАГРУЗКА И ОТОБРАЖЕНИЕ ДАННЫХ
+// ============================================
+
+async function loadFeaturedListings() {
+    await loadListingsFromSupabase();
+    const container = document.getElementById('featuredListings');
+    if (!container) return;
+    
+    let filteredListings = allListings.filter(listing => 
+        listing.is_active && 
+        listing.moderation_status === 'approved'
+    );
+    
+    if (currentFilter !== 'all') {
+        filteredListings = filteredListings.filter(listing => listing.type === currentFilter);
+    }
+    
+    if (currentServerFilter !== 'all') {
+        filteredListings = filteredListings.filter(listing => listing.server === currentServerFilter);
+    }
+    
+    const featured = filteredListings.slice(0, 6);
+    renderListings(featured, container);
+}
+
+async function loadAllListings() {
+    await loadListingsFromSupabase();
+    const container = document.getElementById('allListings');
+    if (!container) return;
+    
+    let filteredListings = allListings.filter(listing => {
+        if (currentFilter === 'pending' && hasModerationRights()) {
+            return listing.moderation_status === 'pending';
         }
+        return listing.is_active && listing.moderation_status === 'approved';
+    });
+    
+    if (currentFilter === 'sale' || currentFilter === 'purchase') {
+        filteredListings = filteredListings.filter(listing => listing.type === currentFilter);
+    } else if (currentFilter === 'my' && currentUser) {
+        filteredListings = filteredListings.filter(listing => listing.user_id === currentUser.id);
+    }
+    
+    if (currentCategory !== 'all') {
+        filteredListings = filteredListings.filter(listing => listing.category === currentCategory);
+    }
+    
+    if (currentServerFilter !== 'all') {
+        filteredListings = filteredListings.filter(listing => listing.server === currentServerFilter);
+    }
+    
+    renderListings(filteredListings, container, currentFilter === 'pending');
+}
+
+async function loadFavoritesPage() {
+    const container = document.getElementById('favoritesListings');
+    if (!container) return;
+    
+    if (!currentUser) {
+        container.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <div class="empty-state-icon"><i class="far fa-heart"></i></div>
+                <div style="font-size: 18px; margin-bottom: var(--space-sm);">Войдите в систему</div>
+                <div style="color: var(--text-secondary); margin-bottom: var(--space-lg);">Чтобы просмотреть избранное, необходимо войти в систему</div>
+                <button class="btn btn-primary" onclick="showAuthOverlay()">Войти</button>
+            </div>
+        `;
+        return;
+    }
+    
+    const favoriteListings = await loadUserFavorites();
+    const activeFavorites = favoriteListings.filter(listing => 
+        listing.is_active && 
+        listing.moderation_status === 'approved'
+    );
+    
+    if (activeFavorites.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <div class="empty-state-icon"><i class="far fa-heart"></i></div>
+                <div style="font-size: 18px; margin-bottom: var(--space-sm);">Нет избранных объявлений</div>
+                <div style="color: var(--text-secondary);">Добавляйте объявления в избранное, нажимая на сердечко</div>
+            </div>
+        `;
+        return;
+    }
+    
+    renderListings(activeFavorites, container);
+}
+
+function renderListings(listingsArray, container, showModerationBadge = false) {
+    if (!listingsArray || listingsArray.length === 0) {
+        const noItemsText = showModerationBadge ? 
+            'Нет объявлений на модерации' : 
+            'Объявлений не найдено';
+        const noItemsSubtext = showModerationBadge ? 
+            'Все объявления проверены' : 
+            'Попробуйте изменить фильтры или создать новое объявление';
         
-        // ============================================
-        // ФОРМАТИРОВАНИЕ
-        // ============================================
+        container.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <div class="empty-state-icon"><i class="far fa-newspaper"></i></div>
+                <div style="font-size: 18px; margin-bottom: var(--space-sm);">${noItemsText}</div>
+                <div style="color: var(--text-secondary);">${noItemsSubtext}</div>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = listingsArray.map(listing => {
+        const badgeClass = listing.type === 'sale' ? 'sale' : 'purchase';
+        const badgeText = listing.type === 'sale' ? 'Продажа' : 'Покупка';
         
-        function formatPrice(price) {
-            return parseInt(price).toLocaleString('ru-RU').replace(/,/g, '.');
-        }
-        
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-            
-            if (diffHours < 1) {
-                return 'только что';
-            } else if (diffHours < 24) {
-                return `${diffHours} ч. назад`;
-            } else {
-                const diffDays = Math.floor(diffHours / 24);
-                if (diffDays < 7) {
-                    return `${diffDays} д. назад`;
-                } else {
-                    return date.toLocaleDateString('ru-RU');
-                }
-            }
-        }
-        
-        function updateCategoryCounts() {
-            const categories = ['plate', 'clothing', 'car', 'business', 'property', 'accessory'];
-            
-            categories.forEach(category => {
-                const count = allListings.filter(listing => 
-                    listing.category === category && 
-                    listing.is_active && 
-                    listing.moderation_status === 'approved'
-                ).length;
-                
-                document.getElementById(category + 'Count').textContent = `${count} объявлений`;
-            });
-        }
-        
-        // ============================================
-        // МОДАЛЬНЫЕ ОКНА И ПРОФИЛЬ
-        // ============================================
-        
-        window.showAuthModal = function() {
-            document.getElementById('authModal').classList.add('active');
+        const categoryIcons = {
+            plate: 'fa-car',
+            clothing: 'fa-tshirt',
+            car: 'fa-car-side',
+            business: 'fa-briefcase',
+            property: 'fa-home',
+            accessory: 'fa-gem'
         };
         
-        window.openFullscreenImage = function(imageSrc) {
-            const fullscreenImg = document.getElementById('fullscreenImg');
-            const fullscreenContainer = document.getElementById('fullscreenImage');
-            
-            fullscreenImg.src = imageSrc;
-            fullscreenContainer.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        };
+        const icon = categoryIcons[listing.category] || 'fa-tag';
         
-        window.closeFullscreen = function() {
-            document.getElementById('fullscreenImage').style.display = 'none';
-            document.body.style.overflow = 'auto';
-        };
+        // Проверяем, есть ли в избранном
+        const isFavorite = currentUser && false; // Будет загружаться отдельно
+        const favoriteIcon = isFavorite ? 'fas fa-heart' : 'far fa-heart';
         
-        async function openListingModal(listingId) {
-            const listing = allListings.find(l => l.id === listingId);
-            if (!listing) {
-                showNotification('Объявление не найдено', 'error');
-                return;
-            }
-            
-            const listingModal = document.getElementById('listingModal');
-            const listingContent = document.getElementById('listingModalContent');
-            
-            const formattedPrice = formatPrice(listing.price);
-            const typeText = listing.type === 'sale' ? 'Продажа' : 'Покупка';
-            const typeClass = listing.type === 'sale' ? 'sale' : 'purchase';
-            
-            const categoryNames = {
-                plate: 'Номерные знаки',
-                clothing: 'Одежда',
-                car: 'Автомобили',
-                business: 'Бизнес',
-                property: 'Недвижимость',
-                accessory: 'Аксессуары'
-            };
-            
-            const categoryIcons = {
-                plate: 'fa-car',
-                clothing: 'fa-tshirt',
-                car: 'fa-car-side',
-                business: 'fa-briefcase',
-                property: 'fa-home',
-                accessory: 'fa-gem'
-            };
-            
-            const icon = categoryIcons[listing.category] || 'fa-tag';
-            
-            let galleryHTML = '';
-            if (listing.images && listing.images.length > 0) {
-                galleryHTML = `
-                    <div style="margin-top: var(--space-lg);">
-                        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-md);">Фотографии</h3>
-                        <div class="image-gallery">
-                            ${listing.images.map((img, index) => `
-                                <div class="gallery-item" onclick="openFullscreenImage('${img}')">
-                                    <img src="${img}" alt="Фото ${index + 1}">
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-            
-            let moderationInfo = '';
-            if (listing.moderation_status !== 'approved') {
-                const statusClass = listing.moderation_status === 'pending' ? 'pending' : 'rejected';
-                const statusText = listing.moderation_status === 'pending' ? 'На модерации' : 'Отклонено';
-                const reasonText = listing.moderation_reason ? `<p><strong>Причина:</strong> ${listing.moderation_reason}</p>` : '';
-                const moderatorText = listing.moderated_by ? `<p><strong>Модератор:</strong> ${listing.moderated_by}</p>` : '';
-                
-                moderationInfo = `
-                    <div style="margin-top: var(--space-lg); padding: var(--space-md); background-color: var(--bg-tertiary); border-radius: var(--radius-medium);">
-                        <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm);">
-                            <div class="moderation-badge ${statusClass}">${statusText}</div>
-                        </div>
-                        ${reasonText}
-                        ${moderatorText}
-                        ${listing.moderated_at ? `<p><strong>Дата модерации:</strong> ${formatDate(listing.moderation_status)}</p>` : ''}
-                    </div>
-                `;
-            }
-            
-            // Получаем информацию о пользователе
-            const user = allUsers.find(u => u.id === listing.user_id) || { username: listing.user_name };
-            
-            listingContent.innerHTML = `
-                <div>
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg);">
-                        <div>
-                            <div class="listing-badge ${typeClass}" style="position: relative; top: 0; right: 0; margin-bottom: var(--space-sm);">${typeText}</div>
-                            <h2 style="font-size: 24px; font-weight: 700; margin-bottom: var(--space-sm);">${listing.title}</h2>
-                            <div style="display: flex; align-items: center; gap: var(--space-sm); color: var(--text-secondary);">
-                                <i class="fas ${icon}"></i>
-                                <span>${categoryNames[listing.category] || listing.category}</span>
-                                <span>•</span>
-                                <i class="fas fa-server"></i>
-                                <span>Сервер ${listing.server}</span>
-                            </div>
-                        </div>
-                        <div class="listing-price" style="font-size: 32px;">${formattedPrice}</div>
-                    </div>
-                    
-                    <div style="margin-bottom: var(--space-lg);">
-                        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-md);">Описание</h3>
-                        <div style="white-space: pre-line; line-height: 1.6;">${listing.description}</div>
-                    </div>
-                    
-                    ${listing.plate_number ? `
-                        <div style="margin-bottom: var(--space-lg);">
-                            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-md);">Номерной знак</h3>
-                            <div style="font-size: 24px; font-weight: 700; letter-spacing: 2px;">${listing.plate_number}</div>
+        // Форматирование цены
+        const formattedPrice = formatPrice(listing.price);
+        
+        // Первое изображение
+        const firstImage = listing.images && listing.images.length > 0 ? listing.images[0] : null;
+        
+        // Бейдж модерации
+        let moderationBadge = '';
+        if (showModerationBadge || listing.moderation_status !== 'approved') {
+            const statusClass = listing.moderation_status === 'pending' ? 'pending' : 
+                               listing.moderation_status === 'rejected' ? 'rejected' : 'approved';
+            const statusText = listing.moderation_status === 'pending' ? 'На модерации' : 
+                              listing.moderation_status === 'rejected' ? 'Отклонено' : 'Одобрено';
+            moderationBadge = `<div class="listing-badge ${statusClass}">${statusText}</div>`;
+        }
+        
+        return `
+            <div class="listing-card" onclick="openListingModal('${listing.id}')">
+                <div class="listing-image">
+                    ${firstImage ? 
+                        `<img src="${firstImage}" alt="${listing.title}" onclick="event.stopPropagation(); openFullscreenImage('${firstImage}')">` : 
+                        `<i class="fas ${icon}"></i>`
+                    }
+                    <div class="listing-badge ${badgeClass}">${badgeText}</div>
+                    ${moderationBadge}
+                    ${currentUser && listing.moderation_status === 'approved' ? `
+                        <div class="listing-badge" style="top: auto; bottom: 12px; right: 12px; background-color: var(--accent-gray); cursor: pointer;" onclick="event.stopPropagation(); toggleFavorite('${listing.id}')">
+                            <i class="${favoriteIcon}"></i>
                         </div>
                     ` : ''}
-                    
-                    ${galleryHTML}
-                    
-                    <div style="margin-top: var(--space-lg); padding: var(--space-md); background-color: var(--bg-tertiary); border-radius: var(--radius-medium);">
-                        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-md);">Информация о продавце</h3>
-                        <div style="display: flex; align-items: center; gap: var(--space-sm);">
-                            <div style="width: 40px; height: 40px; border-radius: 50%; background-color: var(--accent-blue); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">
-                                ${user.username.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                                <div style="font-weight: 600;">${user.username}</div>
-                                <div style="font-size: 14px; color: var(--text-secondary);">Опубликовано: ${formatDate(listing.created_at)}</div>
-                            </div>
-                            <button class="btn btn-secondary" onclick="openProfile('${listing.user_id}')" style="margin-left: auto;">
-                                <i class="fas fa-user"></i> Профиль
+                </div>
+                <div class="listing-content">
+                    <h3 class="listing-title">${listing.title}</h3>
+                    <p class="listing-description">${listing.description}</p>
+                    <div class="listing-price">${formattedPrice}</div>
+                    <div class="listing-meta">
+                        <span><i class="far fa-user"></i> ${listing.user_name}</span>
+                        <span><i class="fas fa-server"></i> ${listing.server}</span>
+                        <span><i class="far fa-clock"></i> ${formatDate(listing.created_at)}</span>
+                    </div>
+                    ${showModerationBadge && hasModerationRights() ? `
+                        <div class="moderation-actions">
+                            <button class="btn btn-success btn-sm" onclick="event.stopPropagation(); moderateListing('${listing.id}', 'approve')">
+                                <i class="fas fa-check"></i> Одобрить
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); moderateListing('${listing.id}', 'reject')">
+                                <i class="fas fa-times"></i> Отклонить
                             </button>
                         </div>
-                    </div>
-                    
-                    ${moderationInfo}
-                    
-                    <div style="display: flex; gap: var(--space-sm); justify-content: flex-end; margin-top: var(--space-xl);">
-                        <button class="btn btn-secondary" onclick="this.closest('.modal').classList.remove('active')">
-                            Закрыть
-                        </button>
-                        ${(currentUser && (currentUser.id === listing.user_id || hasAdminRights())) ? `
-                            <button class="btn btn-danger" onclick="deleteListing('${listing.id}')">
-                                <i class="fas fa-trash"></i> Удалить объявление
-                            </button>
-                        ` : ''}
-                    </div>
+                    ` : ''}
                 </div>
-            `;
-            
-            listingModal.classList.add('active');
-        }
+            </div>
+        `;
+    }).join('');
+}
+
+// ============================================
+// АДМИН ПАНЕЛЬ
+// ============================================
+
+async function loadAdminPanel() {
+    if (!hasAdminRights()) {
+        showNotification('Доступ запрещен', 'error');
+        switchPage('home');
+        return;
+    }
+    
+    await updateAdminStats();
+    await loadUserList();
+    await loadModerationListings();
+    initAdminTabs();
+}
+
+async function updateAdminStats() {
+    const stats = await loadAdminStats();
+    const statsContainer = document.getElementById('adminStats');
+    if (!statsContainer || !stats) return;
+    
+    statsContainer.innerHTML = `
+        <div class="stat-card">
+            <div class="stat-value">${stats.totalUsers}</div>
+            <div class="stat-label">Всего пользователей</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${stats.onlineUsers}</div>
+            <div class="stat-label">Онлайн сейчас</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${stats.bannedUsers}</div>
+            <div class="stat-label">Заблокировано</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${stats.todayRegistrations}</div>
+            <div class="stat-label">Регистраций сегодня</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${stats.totalListings}</div>
+            <div class="stat-label">Всего объявлений</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${stats.approvedListings}</div>
+            <div class="stat-label">Одобрено</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${stats.pendingListings}</div>
+            <div class="stat-label">На модерации</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${stats.totalFavorites}</div>
+            <div class="stat-label">Избранных</div>
+        </div>
+    `;
+}
+
+async function loadUserList() {
+    await loadUsersFromSupabase();
+    const userList = document.getElementById('userList');
+    if (!userList) return;
+    
+    userList.innerHTML = '';
+    
+    allUsers.forEach(user => {
+        const userItem = document.createElement('div');
+        userItem.className = 'user-item';
         
-        async function openProfile(userId) {
-            await loadUsersFromSupabase();
+        const roleBadges = user.roles.map(role => {
+            let roleClass = 'role-badge';
+            if (role === ROLES.FOUNDER) roleClass += ' founder';
+            else if (role === ROLES.ADMIN) roleClass += ' admin';
+            else if (role === ROLES.DEVELOPER) roleClass += ' developer';
+            else if (role === ROLES.MODERATOR) roleClass += ' moderator';
+            else if (role === ROLES.SENIOR_SUPPORT) roleClass += ' senior-support';
+            else if (role === ROLES.SUPPORT) roleClass += ' support';
             
-            const user = allUsers.find(u => u.id === userId);
-            if (!user) {
-                showNotification('Пользователь не найден', 'error');
-                return;
-            }
-            
-            const profileModal = document.getElementById('profileModal');
-            const profileContent = document.getElementById('profileModalContent');
-            
-            const roleBadges = user.roles.map(role => {
-                let roleClass = 'role-badge';
-                if (role === ROLES.FOUNDER) roleClass += ' founder';
-                else if (role === ROLES.ADMIN) roleClass += ' admin';
-                else if (role === ROLES.DEVELOPER) roleClass += ' developer';
-                else if (role === ROLES.MODERATOR) roleClass += ' moderator';
-                else if (role === ROLES.SENIOR_SUPPORT) roleClass += ' senior-support';
-                else if (role === ROLES.SUPPORT) roleClass += ' support';
-                
-                return `<span class="${roleClass}">${role}</span>`;
-            }).join('');
-            
-            const serverList = user.servers.map(s => `Сервер ${s}`).join(', ');
-            
-            profileContent.innerHTML = `
-                <div style="text-align: center; margin-bottom: var(--space-xl);">
-                    <div style="width: 80px; height: 80px; border-radius: 50%; background-color: var(--accent-blue); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 24px; margin: 0 auto var(--space-md);">
-                        ${user.username.charAt(0).toUpperCase()}
-                    </div>
-                    <h2 style="font-size: 24px; font-weight: 700; margin-bottom: var(--space-sm);">${user.username}</h2>
-                    <div class="user-roles-display">
+            return `<span class="${roleClass}">${role}</span>`;
+        }).join('');
+        
+        userItem.innerHTML = `
+            <div class="user-item-info">
+                <div class="user-item-avatar">
+                    ${user.username.charAt(0).toUpperCase()}
+                    ${user.is_banned ? '<div class="admin-badge" style="background-color: var(--accent-red);">B</div>' : ''}
+                </div>
+                <div class="user-item-details">
+                    <h4>${user.username} ${user.is_online ? '🟢' : '⚫'}</h4>
+                    <p>Зарегистрирован: ${formatDate(user.registration_date)}</p>
+                    <p>Объявлений: ${user.listings_count || 0} | Рейтинг: ${user.rating ? user.rating.toFixed(1) : '0.0'}</p>
+                    <div class="user-roles">
                         ${roleBadges}
                     </div>
                 </div>
-                
-                <div style="margin-bottom: var(--space-lg);">
-                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-md);">Информация</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
-                        <div>
-                            <div style="font-size: 14px; color: var(--text-secondary);">Зарегистрирован</div>
-                            <div style="font-weight: 500;">${formatDate(user.registration_date)}</div>
+            </div>
+            <div class="admin-actions">
+                ${user.id !== currentUser?.id ? `
+                    <button class="btn btn-secondary btn-sm" onclick="editUser('${user.id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-warning btn-sm" onclick="toggleBanUser('${user.id}', ${!user.is_banned})">
+                        <i class="fas ${user.is_banned ? 'fa-unlock' : 'fa-ban'}"></i>
+                    </button>
+                ` : ''}
+            </div>
+        `;
+        
+        userList.appendChild(userItem);
+    });
+}
+
+async function loadModerationListings() {
+    await loadListingsFromSupabase();
+    const moderationContainer = document.getElementById('moderationListings');
+    if (!moderationContainer) return;
+    
+    const pendingListings = allListings.filter(l => l.moderation_status === 'pending');
+    renderListings(pendingListings, moderationContainer, true);
+}
+
+function initAdminTabs() {
+    document.querySelectorAll('.admin-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+            
+            document.querySelectorAll('.admin-tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            document.querySelectorAll('.admin-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabId + 'Tab').classList.add('active');
+        });
+    });
+}
+
+// ============================================
+// АДМИН ФУНКЦИИ
+// ============================================
+
+window.editUser = async function(userId) {
+    const user = allUsers.find(u => u.id === userId);
+    if (!user) return;
+    
+    const newUsername = prompt('Введите новый никнейм:', user.username);
+    if (newUsername && newUsername.trim() && newUsername !== user.username) {
+        // Проверяем, не занят ли никнейм
+        if (allUsers.some(u => u.username === newUsername && u.id !== userId)) {
+            showNotification('Этот никнейм уже занят', 'error');
+            return;
+        }
+        
+        const updates = { username: newUsername };
+        const updatedUser = await updateUser(userId, updates);
+        
+        if (updatedUser) {
+            showNotification(`Никнейм изменен: ${user.username} → ${newUsername}`, 'success');
+        }
+    }
+};
+
+window.toggleBanUser = async function(userId, ban) {
+    const user = allUsers.find(u => u.id === userId);
+    if (!user) return;
+    
+    if (user.roles.includes(ROLES.FOUNDER) || user.roles.includes(ROLES.ADMIN)) {
+        showNotification('Нельзя заблокировать администратора', 'error');
+        return;
+    }
+    
+    if (ban && !confirm(`Заблокировать пользователя ${user.username}?`)) return;
+    if (!ban && !confirm(`Разблокировать пользователя ${user.username}?`)) return;
+    
+    const updates = { 
+        is_banned: ban,
+        is_online: ban ? false : user.is_online
+    };
+    
+    const updatedUser = await updateUser(userId, updates);
+    
+    if (updatedUser) {
+        showNotification(`Пользователь ${user.username} ${ban ? 'заблокирован' : 'разблокирован'}`, 'success');
+    }
+    
+    // Если это текущий пользователь - разлогиниваем
+    if (currentUser && currentUser.id === userId && ban) {
+        await logoutUser();
+    }
+};
+
+// ============================================
+// МОДАЛЬНЫЕ ОКНА И ПРОФИЛЬ
+// ============================================
+
+async function openListingModal(listingId) {
+    const listing = allListings.find(l => l.id === listingId);
+    if (!listing) {
+        showNotification('Объявление не найдено', 'error');
+        return;
+    }
+    
+    const listingModal = document.getElementById('listingModal');
+    const listingContent = document.getElementById('listingModalContent');
+    if (!listingModal || !listingContent) return;
+    
+    const formattedPrice = formatPrice(listing.price);
+    const typeText = listing.type === 'sale' ? 'Продажа' : 'Покупка';
+    const typeClass = listing.type === 'sale' ? 'sale' : 'purchase';
+    
+    const categoryNames = {
+        plate: 'Номерные знаки',
+        clothing: 'Одежда',
+        car: 'Автомобили',
+        business: 'Бизнес',
+        property: 'Недвижимость',
+        accessory: 'Аксессуары'
+    };
+    
+    const categoryIcons = {
+        plate: 'fa-car',
+        clothing: 'fa-tshirt',
+        car: 'fa-car-side',
+        business: 'fa-briefcase',
+        property: 'fa-home',
+        accessory: 'fa-gem'
+    };
+    
+    const icon = categoryIcons[listing.category] || 'fa-tag';
+    
+    let galleryHTML = '';
+    if (listing.images && listing.images.length > 0) {
+        galleryHTML = `
+            <div style="margin-top: var(--space-lg);">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-md);">Фотографии</h3>
+                <div class="image-gallery">
+                    ${listing.images.map((img, index) => `
+                        <div class="gallery-item" onclick="openFullscreenImage('${img}')">
+                            <img src="${img}" alt="Фото ${index + 1}">
                         </div>
-                        <div>
-                            <div style="font-size: 14px; color: var(--text-secondary);">Статус</div>
-                            <div style="font-weight: 500; color: ${user.is_online ? 'var(--accent-green)' : 'var(--text-secondary)'}">
-                                ${user.is_online ? '🟢 В сети' : '⚫ Не в сети'}
-                            </div>
-                        </div>
-                        <div>
-                            <div style="font-size: 14px; color: var(--text-secondary);">Объявлений</div>
-                            <div style="font-weight: 500;">${user.listings_count || 0}</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 14px; color: var(--text-secondary);">Рейтинг</div>
-                            <div style="font-weight: 500;">${user.rating ? user.rating.toFixed(1) : '0.0'} / 5.0</div>
-                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    let moderationInfo = '';
+    if (listing.moderation_status !== 'approved') {
+        const statusClass = listing.moderation_status === 'pending' ? 'pending' : 'rejected';
+        const statusText = listing.moderation_status === 'pending' ? 'На модерации' : 'Отклонено';
+        const reasonText = listing.moderation_reason ? `<p><strong>Причина:</strong> ${listing.moderation_reason}</p>` : '';
+        const moderatorText = listing.moderated_by ? `<p><strong>Модератор:</strong> ${listing.moderated_by}</p>` : '';
+        
+        moderationInfo = `
+            <div style="margin-top: var(--space-lg); padding: var(--space-md); background-color: var(--bg-tertiary); border-radius: var(--radius-medium);">
+                <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm);">
+                    <div class="moderation-badge ${statusClass}">${statusText}</div>
+                </div>
+                ${reasonText}
+                ${moderatorText}
+                ${listing.moderated_at ? `<p><strong>Дата модерации:</strong> ${formatDate(listing.moderation_status)}</p>` : ''}
+            </div>
+        `;
+    }
+    
+    // Получаем информацию о пользователе
+    const user = allUsers.find(u => u.id === listing.user_id) || { username: listing.user_name };
+    
+    listingContent.innerHTML = `
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg);">
+                <div>
+                    <div class="listing-badge ${typeClass}" style="position: relative; top: 0; right: 0; margin-bottom: var(--space-sm);">${typeText}</div>
+                    <h2 style="font-size: 24px; font-weight: 700; margin-bottom: var(--space-sm);">${listing.title}</h2>
+                    <div style="display: flex; align-items: center; gap: var(--space-sm); color: var(--text-secondary);">
+                        <i class="fas ${icon}"></i>
+                        <span>${categoryNames[listing.category] || listing.category}</span>
+                        <span>•</span>
+                        <i class="fas fa-server"></i>
+                        <span>Сервер ${listing.server}</span>
                     </div>
                 </div>
-                
+                <div class="listing-price" style="font-size: 32px;">${formattedPrice}</div>
+            </div>
+            
+            <div style="margin-bottom: var(--space-lg);">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-md);">Описание</h3>
+                <div style="white-space: pre-line; line-height: 1.6;">${listing.description}</div>
+            </div>
+            
+            ${listing.plate_number ? `
                 <div style="margin-bottom: var(--space-lg);">
-                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-md);">Серверы</h3>
-                    <div style="color: var(--text-primary);">${serverList}</div>
+                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-md);">Номерной знак</h3>
+                    <div style="font-size: 24px; font-weight: 700; letter-spacing: 2px;">${listing.plate_number}</div>
                 </div>
-                
-                <div style="display: flex; gap: var(--space-sm); justify-content: flex-end; margin-top: var(--space-xl);">
-                    <button class="btn btn-secondary" onclick="this.closest('.modal').classList.remove('active')">
-                        Закрыть
+            ` : ''}
+            
+            ${galleryHTML}
+            
+            <div style="margin-top: var(--space-lg); padding: var(--space-md); background-color: var(--bg-tertiary); border-radius: var(--radius-medium);">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-md);">Информация о продавце</h3>
+                <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background-color: var(--accent-blue); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">
+                        ${user.username.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <div style="font-weight: 600;">${user.username}</div>
+                        <div style="font-size: 14px; color: var(--text-secondary);">Опубликовано: ${formatDate(listing.created_at)}</div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="openProfile('${listing.user_id}')" style="margin-left: auto;">
+                        <i class="fas fa-user"></i> Профиль
                     </button>
-                    ${userId === currentUser?.id ? `
-                        <button class="btn btn-warning" onclick="logout()">
-                            <i class="fas fa-sign-out-alt"></i> Выйти
-                        </button>
-                    ` : ''}
                 </div>
-            `;
+            </div>
             
-            profileModal.classList.add('active');
+            ${moderationInfo}
+            
+            <div style="display: flex; gap: var(--space-sm); justify-content: flex-end; margin-top: var(--space-xl);">
+                <button class="btn btn-secondary" onclick="this.closest('.modal').classList.remove('active')">
+                    Закрыть
+                </button>
+                ${(currentUser && (currentUser.id === listing.user_id || hasAdminRights())) ? `
+                    <button class="btn btn-danger" onclick="deleteListing('${listing.id}')">
+                        <i class="fas fa-trash"></i> Удалить объявление
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    
+    listingModal.classList.add('active');
+}
+
+async function openProfile(userId) {
+    await loadUsersFromSupabase();
+    
+    const user = allUsers.find(u => u.id === userId);
+    if (!user) {
+        showNotification('Пользователь не найден', 'error');
+        return;
+    }
+    
+    const profileModal = document.getElementById('profileModal');
+    const profileContent = document.getElementById('profileModalContent');
+    if (!profileModal || !profileContent) return;
+    
+    const roleBadges = user.roles.map(role => {
+        let roleClass = 'role-badge';
+        if (role === ROLES.FOUNDER) roleClass += ' founder';
+        else if (role === ROLES.ADMIN) roleClass += ' admin';
+        else if (role === ROLES.DEVELOPER) roleClass += ' developer';
+        else if (role === ROLES.MODERATOR) roleClass += ' moderator';
+        else if (role === ROLES.SENIOR_SUPPORT) roleClass += ' senior-support';
+        else if (role === ROLES.SUPPORT) roleClass += ' support';
+        
+        return `<span class="${roleClass}">${role}</span>`;
+    }).join('');
+    
+    const serverList = user.servers.map(s => `Сервер ${s}`).join(', ');
+    
+    profileContent.innerHTML = `
+        <div style="text-align: center; margin-bottom: var(--space-xl);">
+            <div style="width: 80px; height: 80px; border-radius: 50%; background-color: var(--accent-blue); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 24px; margin: 0 auto var(--space-md);">
+                ${user.username.charAt(0).toUpperCase()}
+            </div>
+            <h2 style="font-size: 24px; font-weight: 700; margin-bottom: var(--space-sm);">${user.username}</h2>
+            <div class="user-roles-display">
+                ${roleBadges}
+            </div>
+        </div>
+        
+        <div style="margin-bottom: var(--space-lg);">
+            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-md);">Информация</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
+                <div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Зарегистрирован</div>
+                    <div style="font-weight: 500;">${formatDate(user.registration_date)}</div>
+                </div>
+                <div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Статус</div>
+                    <div style="font-weight: 500; color: ${user.is_online ? 'var(--accent-green)' : 'var(--text-secondary)'}">
+                        ${user.is_online ? '🟢 В сети' : '⚫ Не в сети'}
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Объявлений</div>
+                    <div style="font-weight: 500;">${user.listings_count || 0}</div>
+                </div>
+                <div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Рейтинг</div>
+                    <div style="font-weight: 500;">${user.rating ? user.rating.toFixed(1) : '0.0'} / 5.0</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: var(--space-lg);">
+            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-md);">Серверы</h3>
+            <div style="color: var(--text-primary);">${serverList}</div>
+        </div>
+        
+        <div style="display: flex; gap: var(--space-sm); justify-content: flex-end; margin-top: var(--space-xl);">
+            <button class="btn btn-secondary" onclick="this.closest('.modal').classList.remove('active')">
+                Закрыть
+            </button>
+            ${userId === currentUser?.id ? `
+                <button class="btn btn-warning" onclick="logoutUser()">
+                    <i class="fas fa-sign-out-alt"></i> Выйти
+                </button>
+            ` : ''}
+        </div>
+    `;
+    
+    profileModal.classList.add('active');
+}
+
+// ============================================
+// ГЛОБАЛЬНЫЕ ФУНКЦИИ
+// ============================================
+
+window.openFullscreenImage = function(imageSrc) {
+    const fullscreenImg = document.getElementById('fullscreenImg');
+    const fullscreenContainer = document.getElementById('fullscreenImage');
+    
+    if (!fullscreenImg || !fullscreenContainer) return;
+    
+    fullscreenImg.src = imageSrc;
+    fullscreenContainer.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeFullscreen = function() {
+    const fullscreenContainer = document.getElementById('fullscreenImage');
+    if (!fullscreenContainer) return;
+    
+    fullscreenContainer.style.display = 'none';
+    document.body.style.overflow = 'auto';
+};
+
+window.removeImage = function(index) {
+    uploadedImages.splice(index, 1);
+    updateImagePreview();
+};
+
+window.logout = async function() {
+    await logoutUser();
+};
+
+window.deleteListing = async function(listingId) {
+    if (!confirm('Вы уверены, что хотите удалить это объявление?')) {
+        return;
+    }
+    
+    const success = await deleteListing(listingId);
+    if (success) {
+        showNotification('Объявление удалено', 'success');
+        const listingModal = document.getElementById('listingModal');
+        if (listingModal) {
+            listingModal.classList.remove('active');
         }
         
-        // ============================================
-        // ГЛОБАЛЬНЫЕ ФУНКЦИИ
-        // ============================================
+        if (currentPage === 'listings') {
+            await loadAllListings();
+        } else if (currentPage === 'home') {
+            await loadFeaturedListings();
+        }
+    }
+};
+
+window.toggleFavorite = async function(listingId) {
+    await toggleFavorite(listingId);
+};
+
+window.moderateListing = async function(listingId, action) {
+    if (action === 'reject') {
+        const reason = prompt('Укажите причину отклонения:', 'Нарушение правил публикации');
+        if (reason === null) return;
+        await moderateListing(listingId, action, reason);
+    } else {
+        await moderateListing(listingId, action);
+    }
+};
+
+window.showAuthModal = function() {
+    showAuthOverlay();
+};
+
+window.register = function() {
+    showAuthOverlay();
+    document.getElementById('loginForm').classList.remove('active');
+    document.getElementById('registerForm').classList.add('active');
+};
+
+// ============================================
+// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// ============================================
+
+function formatPrice(price) {
+    return parseInt(price).toLocaleString('ru-RU').replace(/,/g, '.');
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    
+    if (diffHours < 1) {
+        return 'только что';
+    } else if (diffHours < 24) {
+        return `${diffHours} ч. назад`;
+    } else {
+        const diffDays = Math.floor(diffHours / 24);
+        if (diffDays < 7) {
+            return `${diffDays} д. назад`;
+        } else {
+            return date.toLocaleDateString('ru-RU');
+        }
+    }
+}
+
+function updateCategoryCounts() {
+    const categories = ['plate', 'clothing', 'car', 'business', 'property', 'accessory'];
+    
+    categories.forEach(category => {
+        const count = allListings.filter(listing => 
+            listing.category === category && 
+            listing.is_active && 
+            listing.moderation_status === 'approved'
+        ).length;
         
-        window.logout = async function() {
-            await handleLogout();
-        };
+        const element = document.getElementById(category + 'Count');
+        if (element) {
+            element.textContent = `${count} объявлений`;
+        }
+    });
+}
+
+async function switchPage(page) {
+    // Скрываем все страницы
+    document.querySelectorAll('.page').forEach(p => {
+        p.classList.remove('active');
+    });
+    
+    // Показываем выбранную страницу
+    const pageElement = document.getElementById(page + 'Page');
+    if (pageElement) {
+        pageElement.classList.add('active');
+    }
+    
+    // Обновляем навигацию
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('data-page') === page) {
+            link.classList.add('active');
+        }
+    });
+    
+    currentPage = page;
+    
+    if (page === 'home') {
+        await loadFeaturedListings();
+    } else if (page === 'listings') {
+        await loadAllListings();
+    } else if (page === 'favorites') {
+        await loadFavoritesPage();
+    } else if (page === 'admin') {
+        await loadAdminPanel();
+    }
+}
+
+function filterListingsByCategory(category) {
+    currentCategory = category;
+    loadAllListings();
+}
+
+// ============================================
+// СОЗДАНИЕ СПЕЦИАЛЬНОГО ПОЛЬЗОВАТЕЛЯ Zagitok50
+// ============================================
+
+async function createSpecialUser() {
+    try {
+        if (!supabaseClient) return;
         
-        window.deleteListing = async function(listingId) {
-            if (!confirm('Вы уверены, что хотите удалить это объявление?')) {
-                return;
+        const email = 'zagitok50@beyprov.ru';
+        const password = 'admin123';
+        const username = 'Zagitok50';
+        
+        // Пытаемся зарегистрировать пользователя
+        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: { username: username }
             }
-            
-            const success = await deleteListing(listingId);
-            if (success) {
-                showNotification('Объявление удалено', 'success');
-                document.getElementById('listingModal').classList.remove('active');
-                
-                if (currentPage === 'listings') {
-                    await loadAllListings();
-                } else if (currentPage === 'home') {
-                    await loadFeaturedListings();
-                }
-            }
-        };
+        });
         
-        window.toggleFavorite = async function(listingId) {
-            await toggleFavorite(listingId);
-        };
-        
-        // ============================================
-        // ЗАГРУЗКА СПЕЦИАЛЬНОГО ПОЛЬЗОВАТЕЛЯ Zagitok50
-        // ============================================
-        
-        async function createSpecialUser() {
-            try {
-                const email = 'zagitok50@beyprov.ru';
-                const password = 'admin123';
-                const username = 'Zagitok50';
-                
-                // Пытаемся зарегистрировать пользователя
-                const { data: authData, error: authError } = await supabase.auth.signUp({
-                    email: email,
-                    password: password,
-                    options: {
-                        data: { username: username }
-                    }
-                });
-                
-                if (authError && authError.message !== 'User already registered') {
-                    console.error('Error creating special user:', authError);
-                    return;
-                }
-                
-                // Создаем/обновляем запись в таблице users
-                const { error: userError } = await supabase
-                    .from('users')
-                    .upsert({
-                        id: authData?.user?.id,
-                        email: email,
-                        username: username,
-                        servers: ['1', '2', '3', '4', '5', '6', '7'],
-                        roles: [ROLES.FOUNDER, ROLES.ADMIN, ROLES.DEVELOPER],
-                        registration_date: new Date('2023-01-01').toISOString(),
-                        last_login: new Date().toISOString(),
-                        is_online: true,
-                        is_banned: false,
-                        listings_count: 0,
-                        rating: 5.0
-                    }, {
-                        onConflict: 'email'
-                    });
-                
-                if (userError) {
-                    console.error('Error updating user:', userError);
-                } else {
-                    console.log('Special user Zagitok50 created/updated');
-                }
-            } catch (error) {
-                console.error('Error creating special user:', error);
-            }
+        if (authError && authError.message !== 'User already registered') {
+            console.error('Ошибка создания специального пользователя:', authError);
+            return;
         }
         
-        // Раскомментируйте для создания специального пользователя
-        // createSpecialUser();
+        // Создаем/обновляем запись в таблице users
+        const { error: userError } = await supabaseClient
+            .from('users')
+            .upsert({
+                id: authData?.user?.id,
+                email: email,
+                username: username,
+                servers: ['1', '2', '3', '4', '5', '6', '7'],
+                roles: [ROLES.FOUNDER, ROLES.ADMIN, ROLES.DEVELOPER],
+                registration_date: new Date('2023-01-01').toISOString(),
+                last_login: new Date().toISOString(),
+                is_online: true,
+                is_banned: false,
+                listings_count: 0,
+                rating: 5.0
+            }, {
+                onConflict: 'email'
+            });
         
+        if (userError) {
+            console.error('Ошибка обновления пользователя:', userError);
+        } else {
+            console.log('Специальный пользователь Zagitok50 создан/обновлен');
+        }
+    } catch (error) {
+        console.error('Ошибка создания специального пользователя:', error);
+    }
+}
+
+// Раскомментируйте для создания специального пользователя
+// createSpecialUser();
+
+// ============================================
+// ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ (для полноты)
+// ============================================
+
+async function loadConversations() {
+    try {
+        if (!currentUser || !supabaseClient) return [];
+        
+        const { data, error } = await supabaseClient
+            .from('messages')
+            .select('*')
+            .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            console.error('Ошибка загрузки сообщений:', error);
+            return [];
+        }
+        
+        conversations = data || [];
+        return conversations;
+    } catch (error) {
+        console.error('Ошибка загрузки сообщений:', error);
+        return [];
+    }
+}
+
+async function sendMessage(receiverId, listingId, content) {
+    try {
+        if (!currentUser || !supabaseClient) return null;
+        
+        const { data, error } = await supabaseClient
+            .from('messages')
+            .insert({
+                sender_id: currentUser.id,
+                receiver_id: receiverId,
+                listing_id: listingId,
+                content: content,
+                is_read: false,
+                created_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+        
+        if (error) {
+            showNotification(error.message, 'error');
+            return null;
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Ошибка отправки сообщения:', error);
+        return null;
+    }
+}
+
+async function loadReviews(userId) {
+    try {
+        if (!supabaseClient) return [];
+        
+        const { data, error } = await supabaseClient
+            .from('reviews')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            console.error('Ошибка загрузки отзывов:', error);
+            return [];
+        }
+        
+        reviews = data || [];
+        return reviews;
+    } catch (error) {
+        console.error('Ошибка загрузки отзывов:', error);
+        return [];
+    }
+}
+
+async function createReview(userId, rating, comment) {
+    try {
+        if (!currentUser || !supabaseClient) return null;
+        
+        const { data, error } = await supabaseClient
+            .from('reviews')
+            .insert({
+                reviewer_id: currentUser.id,
+                user_id: userId,
+                rating: rating,
+                comment: comment,
+                created_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+        
+        if (error) {
+            showNotification(error.message, 'error');
+            return null;
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Ошибка создания отзыва:', error);
+        return null;
+    }
+}
     </script>
 </body>
 </html>
